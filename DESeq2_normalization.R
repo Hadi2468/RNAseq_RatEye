@@ -50,7 +50,7 @@ assay(dds)       # Pink box
 
 # ############ Filtering ############## 
 # cds <- dds
-dds <- cds
+# dds <- cds
 # nrow(dds)
 # keep <- rowSums(counts(dds)) > 10       # remove genes without expression in more than 10 sample
 # dds <- dds[keep,]
@@ -59,16 +59,16 @@ dds <- cds
 ###########################################
 ### Step 3: Normalization based on rlog ###
 ###########################################
-vsd <- vst(dds, blind=FALSE)
+# vsd <- vst(dds, blind=FALSE)
 rld <- rlog(dds, blind=FALSE)
 head(assay(rld), 3)
 write.table(assay(rld), file="normalized_counts.csv", sep=",", quote=F, col.names=NA)
 
-ntd <- normTransform(dds)
+# ntd <- normTransform(dds)
 library(vsn)
-meanSdPlot(assay(ntd))
-meanSdPlot(assay(vsd))
 meanSdPlot(assay(rld))
+# meanSdPlot(assay(ntd))
+# meanSdPlot(assay(vsd))
 
 ###########################################
 ### Step 4: Heatmap of the count matrix ###
@@ -80,8 +80,8 @@ heat.colors <- brewer.pal(6, "PuBu")
 dds <- estimateSizeFactors(dds)
 select <- order(rowMeans(counts(dds,normalized=TRUE)), decreasing=TRUE)[1:20]
 df <- as.data.frame(colData(dds)[,c("sample", "condition")])
-pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
-pheatmap(assay(vsd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
+# pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
+# pheatmap(assay(vsd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
 pheatmap(assay(rld)[select,], cluster_rows=FALSE, show_rownames=F, cluster_cols=TRUE, annotation_col=df)
 pheatmap(cor(assay(rld)))
 pheatmap(cor(assay(rld)), color=heat.colors, border_color=NA, fontsize=10, fontsize_row=10, height=20, main="Heatmap of sample-to-sample distances")
