@@ -1,58 +1,88 @@
-#########################################################################################
-### Step 1: Transfer gene counts from RSEM outputs to a .csv file, for all 53 sampels ###
-#########################################################################################
+############################################################################################################
+### Step 1: Import RSEM outputs(transcripts aboundance estimation) and samples_name files using tximport ###
+############################################################################################################
+dir <- setwd("/home/h/Desktop/RSEM/export"); getwd()
+samples <- read.table(file.path(dir, "samples.csv"), sep=",", header=TRUE)
+# samples$condition <- factor(c(rep("paired-end", each=3), rep("2_paired-ends", each=50)))
+# write.table(samples, file="samples.csv", sep=",")
+head(samples)
+row.names(samples)
 
-setwd("/home/h/Desktop/RSEM/export"); getwd()
-TopGenes = 32883
-GeneResultsFiles <- list.files(pattern = "*.genes.results")
-for (sample in 1:length(GeneResultsFiles)){
-  sample_name <- substr(GeneResultsFiles[sample], 1, 12)
-  cat ("\n---------------", sample_name , "-----------------------\n")
-  data = read.table(GeneResultsFiles[sample], header = T, stringsAsFactors = F)
-  idx = order(data[,"gene_id"], decreasing = F)
-  # print(data[idx[1:TopGenes], c("gene_id", "TPM")])
-  if (sample == 1) all_data = data[idx[1:TopGenes], c("gene_id", "TPM")]
-  all_data[, sample+1] = data[idx[1:TopGenes], c("TPM")]
-  names(all_data)[sample+1] <- sample_name}
-setwd("/home/h/Desktop/RSEM/R_files"); getwd()
-raw = write.table(all_data, file = "raw_gene_counts.csv", sep = ",", row.names = F)
+RSEM_output_gene_files <- file.path(dir, paste0(samples$sample, ".genes.results"))
+names(RSEM_output_gene_files) <- samples$sample
+head(RSEM_output_gene_files)
+txi.rsem <- tximport(RSEM_output_gene_files, type="rsem", txIn=FALSE, txOut=FALSE)
+names(txi.rsem)
+row.names(txi.rsem$length) 
+head(txi.rsem$abundance)[,1:5]
+head(txi.rsem$counts)[,1:5]
+head(txi.rsem$length)[,1:5]
+geneMat <- (txi.rsem$counts)    # geneMat is the estimation of gene counts (integers)
+head(geneMat)
+dim(geneMat)
+colnames(geneMat)
+row.names(geneMat)
 
-###################################################################
-### Step 2: Converting raw counts file to the DESeq2 data frame ###
-###################################################################
+# ########################### Preparing the isoform count estimation matrix#############################
+# RSEM_output_isoform_files <- file.path(dir, paste0(samples$sample, ".isoforms.results"))
+# names(RSEM_output_isoform_files) <- samples$sample
+# txi_i.rsem <- tximport(RSEM_output_isoform_files, type="rsem", txIn=TRUE, txOut=TRUE)
+# head(txi_i.rsem$abundance)[,1:5]
+# head(txi_i.rsem$counts)[,1:5]
+# head(txi_i.rsem$length)[,1:5]
+# isoformMat <- (txi_i.rsem$counts)    # isoformMat is the estimation of isoform counts (non-integers)
+# head(isoformMat)
+# dim(isoformMat)
 
-# RawCountTable <- read.csv("raw_gene_counts.csv", header = TRUE, sep = ",", row.names = 1)
-RawCountTable <- read.csv("raw_gene_counts_abstract.csv", header = TRUE, sep = ",", row.names = 1)
-head(RawCountTable)
-RoundCountTable = round(RawCountTable[,1:5],0)
-class(RoundCountTable)
-head(RoundCountTable)
-
-library("DESeq2")
-DataStructure <- data.frame(row.names = colnames(RoundCountTable), 
-                      sample_name = colnames(RoundCountTable),
-                      library_type = factor(c(rep("two_reads", 2), rep("four_reads", 3))))
-DataStructure
-colnames(RoundCountTable)
-rownames(DataStructure)
-dds <- DESeqDataSetFromMatrix(countData = RoundCountTable, 
-                              colData = DataStructure, 
-                              design = ~library_type)   # sample_name, library_type 
+#####################################################
+### Step 2: Produsing the DESeq2-based data frame ###
+#####################################################
+library(DESeq2)
+head(txi.rsem$counts)[,1:5]
+colnames(txi.rsem$counts)
+row.names(samples)
+txi.rsem$length[txi.rsem$length == 0] <- 1
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~condition)
 dds
 colData(dds)     # Green box
 rowData(dds)     # Blue box
 assay(dds)       # Pink box
 
-#########################################
-### Step 3: Pre-filtering the dataset ###
-#########################################
+# ############ Filtering ############## 
+# cds <- dds
+dds <- cds
+# nrow(dds)
+# keep <- rowSums(counts(dds)) > 10       # remove genes without expression in more than 10 sample
+# dds <- dds[keep,]
+# nrow(dds)
 
-nrow(dds)
-keep <- rowSums(counts(dds)) > 0       # remove genes without expression in any sample
-# keep <- rowSums(counts(dds)) > 1       # remove genes without expression in more than one sample
-dds <- dds[keep,]
-nrow(dds)
+###########################################
+### Step 3: Normalization based on rlog ###
+###########################################
+vsd <- vst(dds, blind=FALSE)
+rld <- rlog(dds, blind=FALSE)
+head(assay(rld), 3)
+write.table(assay(rld), file="normalized_counts.csv", sep=",", quote=F, col.names=NA)
 
-##############################  ####################################
-### Step 4: The Variance stabilizing transformation using rlog ###
-##################################################################
+ntd <- normTransform(dds)
+library(vsn)
+meanSdPlot(assay(ntd))
+meanSdPlot(assay(vsd))
+meanSdPlot(assay(rld))
+
+###########################################
+### Step 4: Heatmap of the count matrix ###
+###########################################
+library(pheatmap)
+library(RColorBrewer)
+heat.colors <- brewer.pal(6, "PuBu")
+
+dds <- estimateSizeFactors(dds)
+select <- order(rowMeans(counts(dds,normalized=TRUE)), decreasing=TRUE)[1:20]
+df <- as.data.frame(colData(dds)[,c("sample", "condition")])
+pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
+pheatmap(assay(vsd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
+pheatmap(assay(rld)[select,], cluster_rows=FALSE, show_rownames=F, cluster_cols=TRUE, annotation_col=df)
+pheatmap(cor(assay(rld)))
+pheatmap(cor(assay(rld)), color=heat.colors, border_color=NA, fontsize=10, fontsize_row=10, height=20, main="Heatmap of sample-to-sample distances")
+hist(assay(rld))
