@@ -1,13 +1,23 @@
 ############################################################################################################
 ### Step 1: Import RSEM outputs(transcripts aboundance estimation) and samples_name files using tximport ###
 ############################################################################################################
+library(dplyr)
+library(tximport)
+library(DESeq2)
+
 dir <- setwd("/home/h/Desktop/RSEM/export"); getwd()
-samples <- read.table(file.path(dir, "samples.csv"), sep=",", header=TRUE)
-# samples$condition <- factor(c(rep("paired-end", each=3), rep("2_paired-ends", each=50)))
-# write.table(samples, file="samples.csv", sep=",")
+# samples <- read.csv("samples.csv", sep=",", header=TRUE)
+# samples_iop <- read.csv("p50_iop_all_data.csv", sep=",", header=TRUE, stringsAsFactors=TRUE, fill=TRUE)
+# samples_iop[,1] <- gsub("#", "s_", samples_iop[,1])
+# names(samples_iop)[1] <- "sample"
+# write.table(samples_iop, file="p50_iop_all_data_modified.csv", sep=",")
+# new_samples <- left_join(samples, samples_iop, by="sample")
+# row.names(new_samples) <- row.names(samples)
+# write.table(new_samples, file="samples_modified.csv", sep=",")
+samples <- read.csv("samples_modified.csv", sep=",", header=TRUE)
 head(samples)
 row.names(samples)
-
+dir <- setwd("/home/h/Desktop/RSEM/export"); getwd()
 RSEM_output_gene_files <- file.path(dir, paste0(samples$sample, ".genes.results"))
 names(RSEM_output_gene_files) <- samples$sample
 head(RSEM_output_gene_files)
@@ -22,7 +32,6 @@ head(geneMat)
 dim(geneMat)
 colnames(geneMat)
 row.names(geneMat)
-
 # ########################### Preparing the isoform count estimation matrix#############################
 # RSEM_output_isoform_files <- file.path(dir, paste0(samples$sample, ".isoforms.results"))
 # names(RSEM_output_isoform_files) <- samples$sample
@@ -37,12 +46,11 @@ row.names(geneMat)
 #####################################################
 ### Step 2: Produsing the DESeq2-based data frame ###
 #####################################################
-library(DESeq2)
 head(txi.rsem$counts)[,1:5]
 colnames(txi.rsem$counts)
 row.names(samples)
 txi.rsem$length[txi.rsem$length == 0] <- 1
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~condition)
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~read_type)
 dds
 colData(dds)     # Green box
 rowData(dds)     # Blue box
@@ -59,16 +67,16 @@ assay(dds)       # Pink box
 ###########################################
 ### Step 3: Normalization based on rlog ###
 ###########################################
-# vsd <- vst(dds, blind=FALSE)
+vsd <- vst(dds, blind=FALSE)
 rld <- rlog(dds, blind=FALSE)
 head(assay(rld), 3)
 write.table(assay(rld), file="normalized_counts.csv", sep=",", quote=F, col.names=NA)
 
-# ntd <- normTransform(dds)
+ntd <- normTransform(dds)
 library(vsn)
+meanSdPlot(assay(ntd))
+meanSdPlot(assay(vsd))
 meanSdPlot(assay(rld))
-# meanSdPlot(assay(ntd))
-# meanSdPlot(assay(vsd))
 
 ###########################################
 ### Step 4: Heatmap of the count matrix ###
@@ -80,8 +88,8 @@ heat.colors <- brewer.pal(6, "PuBu")
 dds <- estimateSizeFactors(dds)
 select <- order(rowMeans(counts(dds,normalized=TRUE)), decreasing=TRUE)[1:20]
 df <- as.data.frame(colData(dds)[,c("sample", "condition")])
-# pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
-# pheatmap(assay(vsd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
+pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
+pheatmap(assay(vsd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
 pheatmap(assay(rld)[select,], cluster_rows=FALSE, show_rownames=F, cluster_cols=TRUE, annotation_col=df)
 pheatmap(cor(assay(rld)))
 pheatmap(cor(assay(rld)), color=heat.colors, border_color=NA, fontsize=10, fontsize_row=10, height=20, main="Heatmap of sample-to-sample distances")
