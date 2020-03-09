@@ -14,7 +14,11 @@ dir <- setwd("/home/h/Desktop/RSEM/export"); getwd()
 # new_samples <- left_join(samples, samples_iop, by="sample")
 # row.names(new_samples) <- row.names(samples)
 # write.table(new_samples, file="samples_modified.csv", sep=",")
-samples <- read.csv("samples_modified.csv", sep=",", header=TRUE)
+# samples <- read.csv("samples_modified.csv", sep=",", header=TRUE)
+samples <- read.csv("samples_test_labled.csv", sep=",", header=TRUE)
+head(samples)
+samples <- na.omit(samples)
+dim(samples)
 head(samples)
 row.names(samples)
 dir <- setwd("/home/h/Desktop/RSEM/export"); getwd()
@@ -27,11 +31,7 @@ row.names(txi.rsem$length)
 head(txi.rsem$abundance)[,1:5]
 head(txi.rsem$counts)[,1:5]
 head(txi.rsem$length)[,1:5]
-geneMat <- (txi.rsem$counts)    # geneMat is the estimation of gene counts (integers)
-head(geneMat)
-dim(geneMat)
-colnames(geneMat)
-row.names(geneMat)
+
 # ########################### Preparing the isoform count estimation matrix#############################
 # RSEM_output_isoform_files <- file.path(dir, paste0(samples$sample, ".isoforms.results"))
 # names(RSEM_output_isoform_files) <- samples$sample
@@ -39,18 +39,16 @@ row.names(geneMat)
 # head(txi_i.rsem$abundance)[,1:5]
 # head(txi_i.rsem$counts)[,1:5]
 # head(txi_i.rsem$length)[,1:5]
-# isoformMat <- (txi_i.rsem$counts)    # isoformMat is the estimation of isoform counts (non-integers)
-# head(isoformMat)
-# dim(isoformMat)
 
 #####################################################
 ### Step 2: Produsing the DESeq2-based data frame ###
 #####################################################
-head(txi.rsem$counts)[,1:5]
 colnames(txi.rsem$counts)
 row.names(samples)
 txi.rsem$length[txi.rsem$length == 0] <- 1
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~read_type)
+# dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~read_type)
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~class)
+
 dds
 colData(dds)     # Green box
 rowData(dds)     # Blue box
@@ -67,10 +65,10 @@ assay(dds)       # Pink box
 ###########################################
 ### Step 3: Normalization based on rlog ###
 ###########################################
-vsd <- vst(dds, blind=FALSE)
+# vsd <- vst(dds, blind=FALSE)
 rld <- rlog(dds, blind=FALSE)
 head(assay(rld), 3)
-write.table(assay(rld), file="normalized_counts.csv", sep=",", quote=F, col.names=NA)
+  # write.table(assay(rld), file="normalized_counts.csv", sep=",", quote=F, col.names=NA)
 
 ntd <- normTransform(dds)
 library(vsn)
