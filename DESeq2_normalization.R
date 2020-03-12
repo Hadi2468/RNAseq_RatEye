@@ -1,38 +1,48 @@
 #######################################################################################################
 ### DESeq2 Analysis and finding the relation between transcriptomic and IOP information for 45 Rats ###
 #######################################################################################################
-library(dplyr)
-library(tximport)
-library(DESeq2)
-library(vsn)
-library(pheatmap)
-library(RColorBrewer)
+Packages <- c("dplyr", "ggplot2", "tximport", "DESeq2", "vsn", "pheatmap", "RColorBrewer", "corrplot", "ggpubr")
+lapply(Packages, library, character.only = TRUE)
 
 ################################################
 ### Step 1: Import samples' information file ###
 ################################################
 dir <- setwd("/home/h/Desktop/RSEM/export"); getwd()
-# samples <- read.csv("samples.csv", sep=",", header=TRUE)
-# samples_iop <- read.csv("p50_iop_all_data.csv", sep=",", header=TRUE, stringsAsFactors=TRUE, fill=TRUE)
-# samples_iop[,1] <- gsub("#", "s_", samples_iop[,1])
-# names(samples_iop)[1] <- "sample"
-# write.table(samples_iop, file="p50_iop_all_data_modified.csv", sep=",")
-# new_samples <- left_join(samples, samples_iop, by="sample")
-# row.names(new_samples) <- row.names(samples)
-# samples <- new_samples[complete.cases(new_samples), ]         # remove 8 samples which have no IOP data ("NA")
+samples <- read.csv("samples53.csv", sep=",", header=TRUE)
+# new_samples <- left_join(samples53, samples, by=c("sample", "SeqType"))
+# row.names(samples) <- samples$sample
 # for (i in (1:53)) {
-#   samples$OS[i] <- mean(samples$OS1[i], samples$OS2[i], samples$OS3[i])
-#   samples$OD[i] <- mean(samples$OD1[i], samples$OD2[i], samples$OD3[i])
-#   samples$IOP[i] <- mean(samples$OD1[i], samples$OD2[i], samples$OD3[i], samples$OS1[i], samples$OS2[i], samples$OS3[i])
-#   samples$Class[i] <- if(samples$IOP[i] <= 15) "N" else if(15 < samples$IOP[i] & samples$IOP[i] <= 20) "E" else "H" }
-# write.table(samples, file="samples_modified.csv", sep=",")
-samples <- read.csv("samples_modified.csv", sep=",", header=TRUE)
-dim(samples)
-head(samples)
-#################### Plot Pie Chart for classes ###################
+#   samples$Avg_OD[i] <- as.integer(round( (samples$OD1[i] + samples$OD2[i] + samples$OD3[i]) / 3 ))
+#   samples$Avg_OS[i] <- as.integer(round( (samples$OS1[i] + samples$OS2[i] + samples$OS3[i]) / 3 ))
+#   samples$Avg_IOP[i] <- as.integer(round( (samples$OD1[i] + samples$OD2[i] + samples$OD3[i] + samples$OS1[i] + samples$OS2[i] + samples$OS3[i]) / 6 )) }
+# for (i in (1:53)) {
+#   if (samples$Avg_OD[i] == 0) {samples$Class_OD[i] <- "NoData"}
+#   else if (0 < samples$Avg_OD[i] & samples$Avg_OD[i] < 15) {samples$Class_OD[i] <- "Normal"}
+#   else if (15 <= samples$Avg_OD[i] & samples$Avg_OD[i] < 20) {samples$Class_OD[i] <- "Elevated"}
+#   else {samples$Class_OD[i] <- "High"}
+#   if (samples$Avg_OS[i] == 0) {samples$Class_OS[i] <- "NoData"}
+#   else if (0 < samples$Avg_OS[i] & samples$Avg_OS[i] < 15) {samples$Class_OS[i] <- "Normal"}
+#   else if (15 <= samples$Avg_OS[i] & samples$Avg_OS[i] < 20) {samples$Class_OS[i] <- "Elevated"}
+#   else {samples$Class_OS[i] <- "High"}
+#   if (samples$Avg_IOP[i] == 0) {samples$Class_IOP[i] <- "NoData"}
+#   else if (0 < samples$Avg_IOP[i] & samples$Avg_IOP[i] < 15) {samples$Class_IOP[i] <- "Normal"}
+#   else if (15 <= samples$Avg_IOP[i] & samples$Avg_IOP[i] < 20) {samples$Class_IOP[i] <- "Elevated"}
+#   else {samples$Class_IOP[i] <- "High"} }
+# for (i in (1:length(samples$Batch))) {
+#   samples$Batch[i] <- if(samples$Batch[i] == "12") "B12" else if(samples$Batch[i] == "13") "B13" else if(samples$Batch[i] == "14") "B14" else "B15" }
+# for (i in (1:length(samples$Class))) {
+#   samples$Class[i] <- if(samples$Class[i] == "H") "High" else if(samples$Class[i] == "E") "Elevated" else "Normal" }
+# samples <- new_samples[complete.cases(new_samples), ]         # remove 8 samples which have no IOP data ("NA")
+# dim(samples)
+# head(samples)
+samples$Class_OD <- relevel(samples$Class_OD, "Normal")
+samples$Class_OS <- relevel(samples$Class_OS, "Normal")
+samples$Class_IOP <- relevel(samples$Class_IOP, "Normal")
+# write.table(samples, file="samples53.csv", sep=",")
+############# Plot Pie Chart for classes ###############
 # par(mar=c(0.05, 0.05, 0.05, 0.05))
-# slices <- c(count(samples$Class=="N"), count(samples$Class=="E"),count(samples$Class=="H"))
-# lbls <- paste(c("Normal ", "Elevated ", "High "), round(slices/sum(slices)*100), "%", sep="") 
+# slices <- c(count(samples$Class=="Normal"), count(samples$Class=="Elevated"),count(samples$Class=="High"))
+# lbls <- paste(c("Normal ", "Elevated ", "High "), round(slices/sum(slices)*100), "%", sep="")
 # pie(slices, labels=lbls, col=rainbow(3))
 
 ##########################################################################################
@@ -41,15 +51,14 @@ head(samples)
 dir <- setwd("/home/h/Desktop/RSEM/export"); getwd()
 RSEM_output_gene_files <- file.path(dir, paste0(samples$sample, ".genes.results"))
 names(RSEM_output_gene_files) <- samples$sample
-head(RSEM_output_gene_files)
 txi.rsem <- tximport(RSEM_output_gene_files, type="rsem", txIn=FALSE, txOut=FALSE)
-names(txi.rsem)
-row.names(txi.rsem$length) 
-head(txi.rsem$abundance)[,1:5]
-head(txi.rsem$counts)[,1:5]
-head(txi.rsem$length)[,1:5]
-
-# ########################### Preparing the isoform count estimation matrix#############################
+# head(RSEM_output_gene_files)
+# names(txi.rsem)
+# row.names(txi.rsem$length) 
+# head(txi.rsem$abundance)[,1:5]
+# head(txi.rsem$counts)[,1:5]
+# head(txi.rsem$length)[,1:5]
+# ########### Preparing the isoform count estimation matrix##########
 # RSEM_output_isoform_files <- file.path(dir, paste0(samples$sample, ".isoforms.results"))
 # names(RSEM_output_isoform_files) <- samples$sample
 # txi_i.rsem <- tximport(RSEM_output_isoform_files, type="rsem", txIn=TRUE, txOut=TRUE)
@@ -57,58 +66,123 @@ head(txi.rsem$length)[,1:5]
 # head(txi_i.rsem$counts)[,1:5]
 # head(txi_i.rsem$length)[,1:5]
 
-#####################################################
-### Step 2: Produsing the DESeq2-based data frame ###
-#####################################################
-colnames(txi.rsem$counts)
-row.names(samples)
+#########################################################################################
+### Step 3: Produsing the DESeq2 data frame based on the outputs of Step 1 and Step 2 ###
+#########################################################################################
+# colnames(txi.rsem$counts)
+# row.names(samples)
 txi.rsem$length[txi.rsem$length == 0] <- 1
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class)
-dds
-colData(dds)     # Green box
-rowData(dds)     # Blue box
-assay(dds)       # Pink box
-
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_IOP)
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_OD)
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_OS)
+# dds
+# colData(dds)     # Green box
+# rowData(dds)     # Blue box
+# assay(dds)       # Pink box
 # ############ Filtering ############## 
 # cds <- dds
 # dds <- cds
 # nrow(dds)
-# keep <- rowSums(counts(dds)) > 10       # remove genes without expression in more than 10 sample
+# keep <- rowSums(counts(dds)) > 10   # remove genes without expression in more than 10 sample
 # dds <- dds[keep,]
 # nrow(dds)
 
 ###########################################
-### Step 3: Normalization based on rlog ###
+### Step 4: Normalization based on rlog ###
 ###########################################
 # vsd <- vst(dds, blind=FALSE)
 rld <- rlog(dds, blind=FALSE)
-head(assay(rld), 3)
-# write.table(assay(rld), file="normalized_counts.csv", sep=",", quote=F, col.names=NA)
+# head(assay(rld), 3)
+# write.table(assay(rld), file="normalized_IOP_Class.csv", sep=",", quote=F, col.names=NA)
 # ntd <- normTransform(dds)
 # meanSdPlot(assay(ntd))
 # meanSdPlot(assay(vsd))
-meanSdPlot(assay(rld), bins = 100)
+# meanSdPlot(assay(rld), bins = 100)
+# sub_genes <- data.frame(t(assay(rld)))
+# dim(sub_genes)
+# sub_genes <- sub_genes[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
+# write.table(sub_genes, file="normalized_subset_IOP_Class.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+sub_genes <- read.csv("normalized_subset_IOP_Class.csv", sep=",", header=TRUE)
+dim(sub_genes)
+# sub_samples <- samples[-c(3, 14, 42, 43, 44, 45, 46, 47), ] 
+# write.table(sub_samples, file="samples_subset.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+sub_samples <- read.csv("samples_subset.csv", sep=",", header=TRUE)
+dim(sub_samples)
 
-selectedGenes <- data.frame(t(assay(rld)[c("ENSRNOG00000004712_Angptl1", "ENSRNOG00000055293_Ptprb",
-                                "ENSRNOG00000016696_Angpt2",  "ENSRNOG00000020603_Angptl6",
-                                "ENSRNOG00000020173_Tie1",    "ENSRNOG00000008587_Tek",
-                                "ENSRNOG00000025562_Ang2",    "ENSRNOG00000043032_Ang2"),]))
-selectedGenes$sample <- samples$sample
-selectedGenes <- selectedGenes[c(9,1,2,3,4,5,6,7,8)]
-new_samples <- left_join(samples, selectedGenes, by="sample")
-row.names(new_samples) <- row.names(samples)
+####################################
+### Step 5: Correlation analysis ###
+####################################
+selGenes <- subset(sub_genes, select=c(ENSRNOG00000055293_Ptprb, ENSRNOG00000016696_Angpt2, ENSRNOG00000008587_Tek))
+corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for three genes 
+names(corrTable) <- c("IOP", "PTPRB", "AngPt2", "TEK")
+corrplot(cor(corrTable), method="color", type="lower", order="hclust", col=brewer.pal(n=7, name="PRGn"),
+         addCoef.col = "black", tl.col="black", tl.cex=1)
+ggscatter(corrTable, x="IOP", y=c("PTPRB", "AngPt2", "TEK"), size = 1, color = "Blue", cor.method="pearson", 
+          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="IOP", ylab="Normalized gene counts") 
+ggscatter(corrTable, x="PTPRB", y="TEK", size = 1, color = "Blue", cor.method="pearson", 
+          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK") 
+ggscatter(corrTable, x="PTPRB", y="AngPt2", size = 1, color = "Red", cor.method="pearson", 
+          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="PTPRB", ylab="AngPt2") 
+
 
 
 ###########################################
-### Step 4: Heatmap of the count matrix ###
+### Step 6: Heatmap of the count matrix ###
 ###########################################
+gene_subset <- c("ENSRNOG00000004712_Angptl1", "ENSRNOG00000055293_Ptprb",
+                 "ENSRNOG00000016696_Angpt2",  "ENSRNOG00000020603_Angptl6",
+                 "ENSRNOG00000020173_Tie1",    "ENSRNOG00000008587_Tek",
+                 "ENSRNOG00000025562_Ang2",    "ENSRNOG00000043032_Ang2")
+txi.rsem$abundance <- txi.rsem$abundance[gene_subset,]
+txi.rsem$counts <- txi.rsem$counts[gene_subset,]
+txi.rsem$length <- txi.rsem$length[gene_subset,]
+
 heat.colors <- brewer.pal(6, "PuBu")
 dds <- estimateSizeFactors(dds)
 select <- order(rowMeans(counts(dds,normalized=TRUE)), decreasing=TRUE)[1:20]
-df <- as.data.frame(colData(dds)[,c("sample", "class")])
+df <- as.data.frame(colData(dds)[,c("sample", "Class")])
 # pheatmap(assay(ntd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
 # pheatmap(assay(vsd)[select,], cluster_rows=FALSE, show_rownames=FALSE, cluster_cols=FALSE, annotation_col=df)
 pheatmap(assay(rld)[select,], cluster_rows=FALSE, show_rownames=F, cluster_cols=TRUE, annotation_col=df)
 pheatmap(cor(assay(rld)))
 pheatmap(cor(assay(rld)), color=heat.colors, border_color=NA, fontsize=10, fontsize_row=10, height=20, main="Heatmap of sample-to-sample distances")
 hist(assay(rld))
+
+###########################################################
+### Step 7: Differential Gene Expression (DGE) Analysis ###
+###########################################################
+dds
+dds <- DESeq(dds)
+dds
+res <- resultsNames(dds)
+res
+
+
+
+
+samples$OS1[3] <- 0L
+samples$OS1[14] <- 0L
+samples$OS1[42] <- 0L
+samples$OS1[43] <- 0L
+samples$OS1[44] <- 0L
+samples$OS1[45] <- 0L
+samples$OS1[46] <- 0L
+samples$OS1[47] <- 0L
+samples$OS2[3] <- 0L
+samples$OS2[14] <- 0L
+samples$OS2[42] <- 0L
+samples$OS2[43] <- 0L
+samples$OS2[44] <- 0L
+samples$OS2[45] <- 0L
+samples$OS2[46] <- 0L
+samples$OS2[47] <- 0L
+samples$OS3[3] <- 0L
+samples$OS3[14] <- 0L
+samples$OS3[42] <- 0L
+samples$OS3[43] <- 0L
+samples$OS3[44] <- 0L
+samples$OS3[45] <- 0L
+samples$OS3[46] <- 0L
+samples$OS3[47] <- 0L
+
+
