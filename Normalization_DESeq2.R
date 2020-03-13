@@ -123,7 +123,3 @@ rld <- rlog(dds, blind=FALSE)
 sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
 sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
 dim(sub_genes)
-# sub_samples <- samples[-c(3, 14, 42, 43, 44, 45, 46, 47), ] 
-# write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
-sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
-dim(sub_samples)

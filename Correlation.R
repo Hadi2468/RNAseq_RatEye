@@ -15,33 +15,73 @@ lapply(Packages, library, character.only = TRUE)
 ### Step 1: Import 45 samples' information files ###
 ####################################################
 
-setwd("./datasets"); getwd()
+setwd("./"); getwd()
 samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 dim(samples)
 # sub_samples <- samples[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
-# write.table(sub_samples, file="samples_subset.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
-sub_samples <- read.csv("samples_subset.csv", sep=",", header=TRUE)
+# write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
-sub_genes <- read.csv("normalized_subset_IOP_Class.csv", sep=",", header=TRUE)
+sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
+sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
 dim(sub_genes)
 
 ####################################
 ### Step 2: Correlation Analysis ###
 ####################################
 
-selGenes <- subset(sub_genes, select=c(ENSRNOG00000055293_Ptprb, ENSRNOG00000016696_Angpt2, ENSRNOG00000008587_Tek))
+selGenes <- subset(sub_genes, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 corrTable <- cbind(sub_samples$Avg_OD, sub_samples$Avg_OS, sub_samples$Avg_IOP, selGenes)    # Correlation tables for three genes 
-names(corrTable) <- c("OD", "OS", "IOP", "PTPRB", "AngPt2", "TEK")
-corrplot(cor(corrTable), method="color", type="upper", order="FPC", col=brewer.pal(n=7, name="PRGn"),
-         addCoef.col = "black", tl.col="black", tl.cex=1, addrect=3)
+names(corrTable) <- c("_OD", "_OS", "_IOP", "ANGPT2", "PTPRB", "TEK")
+
+corrplot(cor(corrTable, method="pearson"), method="color", type="upper", order="alphabet", 
+         col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
+corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order="hclust", 
+         col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
+corrplot(cor(corrTable, method="kendall"), method="color", type="upper", order="FPC", 
+         col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 pheatmap(cor(corrTable))
-ggscatter(corrTable, x="OD", y=c("PTPRB", "AngPt2", "TEK"), size = 1, color = "Blue", cor.method="pearson", 
-          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="OD", ylab="Normalized gene counts") 
-ggscatter(corrTable, x="OS", y=c("PTPRB", "AngPt2", "TEK"), size = 1, color = "Blue", cor.method="pearson", 
-          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="OS", ylab="Normalized gene counts") 
-ggscatter(corrTable, x="IOP", y=c("PTPRB", "AngPt2", "TEK"), size = 1, color = "Blue", cor.method="pearson", 
-          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="IOP", ylab="Normalized gene counts") 
-ggscatter(corrTable, x="AngPt2", y=c("PTPRB", "TEK"), size = 1, color = "Blue", cor.method="pearson", 
+
+corrTable_new <- cbind(sub_samples$Sex, corrTable)    # Correlation tables for three genes 
+names(corrTable_new) <- c("Sex", "OD", "OS", "IOP", "ANGPT2", "PTPRB", "TEK")
+
+ggscatter(corrTable_new, x="OD", y=c("PTPRB", "ANGPT2", "TEK"), size=3, shape=19, color="Sex", cor.method="pearson", title="Correlation: Pearson, Normalization: rlog",
+          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="OD", ylab="Normalized gene counts", palette=c("red", "pink", "blue")) 
+ggscatter(corrTable_new, x="OS", y=c("PTPRB", "ANGPT2", "TEK"), size=3, shape=19, color="Sex", cor.method="pearson", title="Correlation: Pearson, Normalization: rlog",
+          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="OS", ylab="Normalized gene counts", palette=c("red", "pink", "blue")) 
+ggscatter(corrTable_new, x="IOP", y=c("PTPRB", "ANGPT2", "TEK"), size=3, shape=19, color="Sex", cor.method="pearson", title="Correlation: Pearson, Normalization: rlog",
+          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="IOP", ylab="Normalized gene counts", palette=c("red", "pink", "blue")) 
+
+ggscatter(corrTable_new, x="OD", y=c("PTPRB", "ANGPT2", "TEK"), size=3, shape=19, color="Sex", cor.method="spearman", title="Correlation: Spearman, Normalization: rlog",
+          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="OD", ylab="Normalized gene counts", palette=c("red", "pink", "blue")) 
+ggscatter(corrTable_new, x="OS", y=c("PTPRB", "ANGPT2", "TEK"), size=3, shape=19, color="Sex", cor.method="spearman", title="Correlation: Spearman, Normalization: rlog",
+          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="OS", ylab="Normalized gene counts", palette=c("red", "pink", "blue")) 
+ggscatter(corrTable_new, x="IOP", y=c("PTPRB", "ANGPT2", "TEK"), size=3, shape=19, color="Sex", cor.method="spearman", title="Correlation: Spearman, Normalization: rlog",
+          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="IOP", ylab="Normalized gene counts", palette=c("red", "pink", "blue"))           
+          
+ggscatter(corrTable_new, x="OD", y=c("PTPRB", "ANGPT2", "TEK"), size=3, shape=19, color="Sex", cor.method="kendall", title="Correlation: Kendall, Normalization: rlog",
+          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="OD", ylab="Normalized gene counts", palette=c("red", "pink", "blue")) 
+ggscatter(corrTable_new, x="OS", y=c("PTPRB", "ANGPT2", "TEK"), size=3, shape=19, color="Sex", cor.method="kendall", title="Correlation: Kendall, Normalization: rlog",
+          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="OS", ylab="Normalized gene counts", palette=c("red", "pink", "blue")) 
+ggscatter(corrTable_new, x="IOP", y=c("PTPRB", "ANGPT2", "TEK"), size=3, shape=19, color="Sex", cor.method="kendall", title="Correlation: Kendall, Normalization: rlog",
+          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="IOP", ylab="Normalized gene counts", palette=c("red", "pink", "blue")) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size = 1, color = "Blue", cor.method="pearson", 
           combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="AngPt2", ylab="PTPRB & TEK") 
 ggscatter(corrTable, x="PTPRB", y="TEK", size = 1, color = "Blue", cor.method="pearson", 
           combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK") 
