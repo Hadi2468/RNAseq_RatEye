@@ -15,7 +15,7 @@ lapply(Packages, library, character.only = TRUE)
 ### Step 1: Import 45 samples' information files ###
 ####################################################
 
-setwd("./"); getwd()
+getwd(); setwd("./Data"); getwd()
 samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 dim(samples)
 # sub_samples <- samples[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
@@ -89,7 +89,8 @@ ggscatter(corrTable, x="PTPRB", y="TEK", size = 1, color = "Blue", cor.method="p
 
 
 
-
+pcor.test(angpt2, iop, age)
+summary(lm(angpt2~iop+age))
 
 
 ########################################
@@ -110,11 +111,11 @@ pheatmap(cor(assay(rld)))
 pheatmap(cor(assay(rld)), color=heat.colors, border_color=NA, fontsize=10, fontsize_row=10, height=20, main="Heatmap of sample-to-sample distances")
 hist(assay(rld))
 
-samples$OS1[3] <- 0L
-samples$OS1[14] <- 0L
-samples$OS1[42] <- 0L
-samples$OS1[43] <- 0L
-samples$OS1[44] <- 0L
-samples$OS1[45] <- 0L
-samples$OS1[46] <- 0L
-samples$OS1[47] <- 0L
+samples$AgeInDays[3] <- 0L
+samples$AgeInDays[14] <- 0L
+samples$AgeInDays[42] <- 0L
+samples$AgeInDays[43] <- 0L
+samples$AgeInDays[44] <- 0L
+samples$AgeInDays[45] <- 0L
+samples$AgeInDays[46] <- 0L
+samples$AgeInDays[47] <- 0L

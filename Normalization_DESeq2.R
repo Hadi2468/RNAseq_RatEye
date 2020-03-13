@@ -42,6 +42,14 @@ samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 #   else if (0 < samples$Avg_IOP[i] & samples$Avg_IOP[i] < 15) {samples$Class_IOP[i] <- "Normal"}
 #   else if (15 <= samples$Avg_IOP[i] & samples$Avg_IOP[i] < 20) {samples$Class_IOP[i] <- "Elevated"}
 #   else {samples$Class_IOP[i] <- "High"} }
+# boxplot(sub_samples$AgeInDays, col="pink", ylab="Age")
+# quantile(sub_samples$AgeInDays, c(0.25, 0.5, 0.75), type = 1)
+# for (i in (1:53)) {
+#   if (samples$AgeInDays[i] == 0) {samples$Class_Age[i] <- "NoData"}
+#   else if (113 <= samples$AgeInDays[i] & samples$AgeInDays[i] < 135) {samples$Class_Age[i] <- "A1_Adolescent"}
+#   else if (135 <= samples$AgeInDays[i] & samples$AgeInDays[i] < 154) {samples$Class_Age[i] <- "A2_Adult"}
+#   else if (154 <= samples$AgeInDays[i] & samples$AgeInDays[i] < 183) {samples$Class_Age[i] <- "A3_Middle_Aged"}
+#   else {samples$Class_Age[i] <- "A4_Aged"} }
 # for (i in (1:length(samples$Batch))) {
 #   samples$Batch[i] <- if(samples$Batch[i] == "12") "B12" else if(samples$Batch[i] == "13") "B13" else if(samples$Batch[i] == "14") "B14" else "B15" }
 # for (i in (1:length(samples$Class))) {
@@ -52,7 +60,7 @@ samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 samples$Class_OD <- relevel(samples$Class_OD, "Normal")
 samples$Class_OS <- relevel(samples$Class_OS, "Normal")
 samples$Class_IOP <- relevel(samples$Class_IOP, "Normal")
-# write.table(samples, file="samples53.csv", sep=",")
+write.table(samples, file="samples53.csv", sep=",")
 ############# Plot Pie Chart for classes ###############
 # par(mar=c(0.05, 0.05, 0.05, 0.05))
 # slices <- c(count(samples$Class=="Normal"), count(samples$Class=="Elevated"),count(samples$Class=="High"))
