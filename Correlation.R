@@ -7,8 +7,10 @@
 # install.packages("RColorBrewer")
 # install.packages("ggpubr")
 # install.packages("pheatmap")
+# install.packages("ppcor")
+
 Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", 
-              "corrplot", "RColorBrewer", "ggpubr", "pheatmap")
+              "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "ppcor")
 lapply(Packages, library, character.only = TRUE)
 
 ####################################################
@@ -44,7 +46,7 @@ corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order=
 #          col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 pheatmap(cor(corrTable))
 
-####### Sex based scatter plot ############
+####### "Sex" based scatter plot ############
 corrTable_new <- cbind(sub_samples$Sex, corrTable)    # Correlation tables for three genes 
 # names(corrTable_new) <- c("Sex", "OD", "OS", "IOP", "ANGPT2", "PTPRB", "TEK")
 names(corrTable_new) <- c("Sex", "IOP", "ANGPT2", "PTPRB", "TEK")
@@ -79,7 +81,7 @@ ggscatter(corrTable_new, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, colo
 ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Sex", cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog",
           combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK", palette=c("red", "pink", "blue"))
 
-####### Age based scatter plot ############
+####### "Age" based scatter plot ############
 corrTable_new <- cbind(sub_samples$Class_Age, corrTable)    # Correlation tables for three genes 
 names(corrTable_new)[1] <- "Age"
 
@@ -97,7 +99,7 @@ ggscatter(corrTable_new, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, colo
 ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Age", cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog",
           combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK", palette=c("green", "red", "blue", "black"))
 
-####### Batch based scatter plot ############
+####### "Batch" based scatter plot ############
 corrTable_new <- cbind(sub_samples$Batch, corrTable)    # Correlation tables for three genes 
 names(corrTable_new)[1] <- "Batch"
 
@@ -116,9 +118,16 @@ ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Batch", co
           combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK", palette=c("green", "red", "blue", "black"))
            
 ####### Partial correlation test ####### 
-pcor.test("ANGPT2", "IOP", "Age")
-summary(lm(angpt2~iop+age))
+corrTable <- cbind(sub_samples$Avg_IOP, sub_samples$AgeInDays, sub_samples$Batch, selGenes)    # Correlation tables for three genes 
+names(corrTable) <- c("IOP", "Age", "Batch", "ANGPT2", "PTPRB", "TEK")
 
+pcor.test(corrTable$ANGPT2, corrTable$IOP, corrTable$Age, method="pearson")
+summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age))
+
+pcor.test(corrTable$ANGPT2, corrTable$IOP, corrTable$Batch, method="pearson")
+summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age+corrTable$Batch))
+
+summary(lm(corrTable$ANGPT2~corrTable$IOP))
 
 ########################################
 ### Others helpful codes for memorize ###
