@@ -21,7 +21,7 @@ lapply(Packages, library, character.only = TRUE)
 ###################################################
 ### Step 1: Import 53 samples' information file ###
 ###################################################
-setwd("./datasets"); getwd()
+setwd("./Data"); getwd()
 samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 # new_samples <- left_join(samples53, samples, by=c("sample", "SeqType"))
 # row.names(samples) <- samples$sample
@@ -62,7 +62,7 @@ samples$Class_IOP <- relevel(samples$Class_IOP, "Normal")
 ##########################################################################################
 ### Step 2: Import RSEM outputs(transcripts aboundance estimation) file using tximport ###
 ##########################################################################################
-setwd("../rsem_export_dataset"); getwd()
+setwd("./rsem_export_dataset"); getwd()
 RSEM_output_gene_files <- file.path(getwd(), paste0(samples$sample, ".genes.results"))
 names(RSEM_output_gene_files) <- samples$sample
 txi.rsem <- tximport(RSEM_output_gene_files, type="rsem", txIn=FALSE, txOut=FALSE)
@@ -87,8 +87,8 @@ txi.rsem <- tximport(RSEM_output_gene_files, type="rsem", txIn=FALSE, txOut=FALS
 # row.names(samples)
 txi.rsem$length[txi.rsem$length == 0] <- 1
 dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_IOP)
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_OD)
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_OS)
+# dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_OD)
+# dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_OS)
 # dds
 # colData(dds)     # Green box
 # rowData(dds)     # Blue box
@@ -101,25 +101,29 @@ dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_OS)
 # dds <- dds[keep,]
 # nrow(dds)
 
-###########################################
-### Step 4: Normalization based on rlog ###
-###########################################
-setwd("../datasets"); getwd()
+#################################################
+### Step 4: Normalization based on rlog & vsd ###
+#################################################
+setwd("../"); getwd()
+vsd <- vst(dds, blind=FALSE)
 rld <- rlog(dds, blind=FALSE)
-# vsd <- vst(dds, blind=FALSE)
 # head(assay(rld), 3)
-# write.table(assay(rld), file="normalized_IOP_Class.csv", sep=",", quote=F, col.names=NA)
 # ntd <- normTransform(dds)
 # meanSdPlot(assay(ntd))
 # meanSdPlot(assay(vsd))
 # meanSdPlot(assay(rld), bins = 100)
-# sub_genes <- data.frame(t(assay(rld)))
-# dim(sub_genes)
-# sub_genes <- sub_genes[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
-# write.table(sub_genes, file="normalized_subset_IOP_Class.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
-sub_genes <- read.csv("normalized_subset_IOP_Class.csv", sep=",", header=TRUE)
+# sub_genes_rld <- data.frame(t(assay(rld)))
+# sub_genes_vst <- data.frame(t(assay(vsd)))
+# dim(sub_genes_rld)
+# dim(sub_genes_vst)
+# sub_genes_rld <- sub_genes_rld[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
+# sub_genes_vst <- sub_genes_vst[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
+# write.table(sub_genes_rld, file="normalized_rlog_class_IOP.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+# write.table(sub_genes_vst, file="normalized_vst_class_IOP.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
+sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
 dim(sub_genes)
 # sub_samples <- samples[-c(3, 14, 42, 43, 44, 45, 46, 47), ] 
-# write.table(sub_samples, file="samples_subset.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
-sub_samples <- read.csv("samples_subset.csv", sep=",", header=TRUE)
+# write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
