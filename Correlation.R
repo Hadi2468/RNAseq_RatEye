@@ -17,7 +17,8 @@ lapply(Packages, library, character.only = TRUE)
 ### Step 1: Import 45 samples' information files ###
 ####################################################
 
-getwd(); setwd("./Data"); getwd()
+getwd()
+setwd("./Data"); getwd()
 samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 dim(samples)
 # sub_samples <- samples[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
@@ -26,6 +27,7 @@ sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
 sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
 sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
+sub_genes <- read.csv("real_count.csv", sep=",", header=TRUE)
 dim(sub_genes)
 
 ####################################
@@ -50,6 +52,11 @@ pheatmap(cor(corrTable))
 corrTable_new <- cbind(sub_samples$Sex, corrTable)    # Correlation tables for three genes 
 # names(corrTable_new) <- c("Sex", "OD", "OS", "IOP", "ANGPT2", "PTPRB", "TEK")
 names(corrTable_new) <- c("Sex", "IOP", "ANGPT2", "PTPRB", "TEK")
+
+ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="red", cor.method="pearson", title="Correlation: Pearson,    Non_Normalization",
+          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="IOP", ylab="Real gene expression")
+ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="blue", cor.method="spearman", title="Correlation: Pearson,    Non_Normalization",
+          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="IOP", ylab="Real gene expression")
 
 ggscatter(corrTable_new, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Sex", cor.method="pearson", title="Correlation: Pearson,    Normalization: rlog",
           combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="IOP", ylab="Normalized gene counts", palette=c("red", "pink", "blue"))
@@ -129,6 +136,23 @@ summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age+corrTable$Batch))
 
 summary(lm(corrTable$ANGPT2~corrTable$IOP))
 
+###############################
+### Step 3: Histogram plots ###
+###############################
+
+summary(corrTable)
+ThreeGenesR <- read.csv("ThreeGenes_Real.csv", sep=",", header=TRUE)
+ThreeGenesN <- read.csv("ThreeGenes_rlog.csv", sep=",", header=TRUE)
+ggplot(ThreeGenesN, aes(Expression, fill=Gene)) + geom_density(alpha=0.6) + scale_fill_manual(values=c("red", "blue", "yellow"))
+ggplot(ThreeGenesR, aes(Expression, fill=Gene)) + geom_density(alpha=0.6) + scale_fill_manual(values=c("red", "blue", "yellow"))
+
+
+
+
+
+
+
+
 ########################################
 ### Others helpful codes for memorize ###
 ########################################
@@ -155,3 +179,5 @@ samples$AgeInDays[44] <- 0L
 samples$AgeInDays[45] <- 0L
 samples$AgeInDays[46] <- 0L
 samples$AgeInDays[47] <- 0L
+
+write.table(ThreeGenes, file="ThreeGenes.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)

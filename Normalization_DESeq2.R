@@ -60,7 +60,7 @@ samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 samples$Class_OD <- relevel(samples$Class_OD, "Normal")
 samples$Class_OS <- relevel(samples$Class_OS, "Normal")
 samples$Class_IOP <- relevel(samples$Class_IOP, "Normal")
-write.table(samples, file="samples53.csv", sep=",")
+# write.table(samples, file="samples53.csv", sep=",")
 ############# Plot Pie Chart for classes ###############
 # par(mar=c(0.05, 0.05, 0.05, 0.05))
 # slices <- c(count(samples$Class=="Normal"), count(samples$Class=="Elevated"),count(samples$Class=="High"))
@@ -131,3 +131,6 @@ rld <- rlog(dds, blind=FALSE)
 sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
 sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
 dim(sub_genes)
+
+######## linear normalization ########
+# normalize(b, method = "standardize", range = c(0, 1), margin = 1L, on.constant = "quiet")
