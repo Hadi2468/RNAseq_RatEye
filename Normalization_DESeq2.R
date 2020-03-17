@@ -21,6 +21,7 @@ lapply(Packages, library, character.only = TRUE)
 ###################################################
 ### Step 1: Import 53 samples' information file ###
 ###################################################
+getwd()
 setwd("./Data"); getwd()
 samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 # new_samples <- left_join(samples53, samples, by=c("sample", "SeqType"))
@@ -113,9 +114,24 @@ dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_IOP)
 ### Step 4: Normalization based on rlog & vsd ###
 #################################################
 setwd("../"); getwd()
+
+head(txi.rsem$counts, 3)[,1:5]
+txi.rsem$counts[10000,1:53]
+
 vsd <- vst(dds, blind=FALSE)
+head(assay(vsd), 3)[,1:5]
+assay(vsd)[10000,1:53]
+
 rld <- rlog(dds, blind=FALSE)
-# head(assay(rld), 3)
+head(assay(rld), 3)[,1:5]
+assay(rld)[10000,1:53]
+# test
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_IOP)
+dds <- estimateSizeFactors(dds)
+LOG2 <- log2(counts(dds, normalized=TRUE)+1)
+head(LOG2, 3)[,1:5]
+LOG2[10000,1:53]
+
 # ntd <- normTransform(dds)
 # meanSdPlot(assay(ntd))
 # meanSdPlot(assay(vsd))
