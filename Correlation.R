@@ -25,30 +25,63 @@ dim(samples)
 # write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
-sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
-sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
-sub_genes <- read.csv("real_count.csv", sep=",", header=TRUE)
-dim(sub_genes)
+sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
+sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
+sub_genes_v <- read.csv("normalized_vst.csv", sep=",", header=TRUE)
+sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
+dim(sub_genes_2)
+dim(sub_genes_r)
+dim(sub_genes_v)
+dim(sub_genes_c)
 
-####################################
-### Step 2: Correlation Analysis ###
-####################################
+###########################################################################
+### Step 2: Correlation Analysis: Heatmap, Clustering, and Distribution ###
+###########################################################################
 
-selGenes <- subset(sub_genes, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
-# corrTable <- cbind(sub_samples$Avg_OD, sub_samples$Avg_OS, sub_samples$Avg_IOP, selGenes)    # Correlation tables for three genes 
-# names(corrTable) <- c("_OD", "_OS", "_IOP", "ANGPT2", "PTPRB", "TEK")
+selGenes <- subset(sub_genes_2, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
+selGenes <- subset(sub_genes_r, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
+selGenes <- subset(sub_genes_v, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
+selGenes <- subset(sub_genes_c, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
+
 corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for three genes 
 names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
 
-corrplot(cor(corrTable, method="pearson"), method="color", type="upper", order="hclust", 
-         col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
-corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order="hclust", 
-         col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
-# corrplot(cor(corrTable, method="kendall"), method="color", type="upper", order="hclust", 
-#          col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
+summary(corrTable)     # Basic statistical analysis
+
 pheatmap(cor(corrTable))
 
-####### "Sex" based scatter plot ############
+######## Pearson Correlatoin ########
+corrplot(cor(corrTable, method="pearson"), method="color", type="upper", order="hclust", 
+         col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
+
+######## Spearman Correlatoin ########
+corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order="hclust", 
+         col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
+
+######## Kendall Correlatoin ########
+# corrplot(cor(corrTable, method="kendall"), method="color", type="upper", order="hclust", 
+#          col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
+
+######## Distribution ########
+ThreeGenes <- read.csv("ThreeGenes.csv", sep=",", header=TRUE)
+ThreeGenes$Expression[1:45] <- corrTable$ANGPT2
+ThreeGenes$Expression[46:90] <- corrTable$PTPRB
+ThreeGenes$Expression[91:135] <- corrTable$TEK
+ggplot(ThreeGenes, aes(Expression, fill=Gene)) + geom_density(alpha=0.6) + scale_fill_manual(values=c("red", "blue", "yellow"))
+ggplot(corrTable, aes(IOP)) + geom_density(fill="green") + scale_x_continuous(limits=c(10, 25))
+
+###################################################
+### Step 3: Correlation Analysis: Scatter Plots ###
+###################################################
+
+corrTable_new <- cbind(sub_samples$Class_IOP, corrTable)    # Correlation tables for three genes 
+ggscatter(corrTable_new, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", cor.method="spearman", title="Correlation: Pearson,    Non_Normalization",
+          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="IOP", ylab="Real gene expression")
+
+
+
+
+######## "Sex" based scatter plot ######## 
 corrTable_new <- cbind(sub_samples$Sex, corrTable)    # Correlation tables for three genes 
 # names(corrTable_new) <- c("Sex", "OD", "OS", "IOP", "ANGPT2", "PTPRB", "TEK")
 names(corrTable_new) <- c("Sex", "IOP", "ANGPT2", "PTPRB", "TEK")
@@ -88,7 +121,7 @@ ggscatter(corrTable_new, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, colo
 ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Sex", cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog",
           combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK", palette=c("red", "pink", "blue"))
 
-####### "Age" based scatter plot ############
+######## "Age" based scatter plot ########
 corrTable_new <- cbind(sub_samples$Class_Age, corrTable)    # Correlation tables for three genes 
 names(corrTable_new)[1] <- "Age"
 
@@ -106,7 +139,7 @@ ggscatter(corrTable_new, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, colo
 ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Age", cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog",
           combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK", palette=c("green", "red", "blue", "black"))
 
-####### "Batch" based scatter plot ############
+######## "Batch" based scatter plot ########
 corrTable_new <- cbind(sub_samples$Batch, corrTable)    # Correlation tables for three genes 
 names(corrTable_new)[1] <- "Batch"
 
@@ -124,7 +157,7 @@ ggscatter(corrTable_new, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, colo
 ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Batch", cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog",
           combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK", palette=c("green", "red", "blue", "black"))
            
-####### Partial correlation test ####### 
+######## Partial correlation test ######## 
 corrTable <- cbind(sub_samples$Avg_IOP, sub_samples$AgeInDays, sub_samples$Batch, selGenes)    # Correlation tables for three genes 
 names(corrTable) <- c("IOP", "Age", "Batch", "ANGPT2", "PTPRB", "TEK")
 
@@ -136,26 +169,10 @@ summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age+corrTable$Batch))
 
 summary(lm(corrTable$ANGPT2~corrTable$IOP))
 
-###############################
-### Step 3: Histogram plots ###
-###############################
 
-summary(corrTable)
-ThreeGenesR <- read.csv("ThreeGenes_Real.csv", sep=",", header=TRUE)
-ThreeGenesN <- read.csv("ThreeGenes_rlog.csv", sep=",", header=TRUE)
-ggplot(ThreeGenesN, aes(Expression, fill=Gene)) + geom_density(alpha=0.6) + scale_fill_manual(values=c("red", "blue", "yellow"))
-ggplot(ThreeGenesR, aes(Expression, fill=Gene)) + geom_density(alpha=0.6) + scale_fill_manual(values=c("red", "blue", "yellow"))
-
-
-
-
-
-
-
-
-########################################
+#########################################
 ### Others helpful codes for memorize ###
-########################################
+#########################################
 txi.rsem$abundance <- txi.rsem$abundance[gene_subset,]
 txi.rsem$counts <- txi.rsem$counts[gene_subset,]
 txi.rsem$length <- txi.rsem$length[gene_subset,]

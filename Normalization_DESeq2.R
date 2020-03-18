@@ -58,8 +58,8 @@ samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 # samples <- new_samples[complete.cases(new_samples), ]         # remove 8 samples which have no IOP data ("NA")
 # dim(samples)
 # head(samples)
-samples$Class_OD <- relevel(samples$Class_OD, "Normal")
-samples$Class_OS <- relevel(samples$Class_OS, "Normal")
+# samples$Class_OD <- relevel(samples$Class_OD, "Normal")
+# samples$Class_OS <- relevel(samples$Class_OS, "Normal")
 samples$Class_IOP <- relevel(samples$Class_IOP, "Normal")
 # write.table(samples, file="samples53.csv", sep=",")
 ############# Plot Pie Chart for classes ###############
@@ -95,58 +95,54 @@ txi.rsem <- tximport(RSEM_output_gene_files, type="rsem", txIn=FALSE, txOut=FALS
 # colnames(txi.rsem$counts)
 # row.names(samples)
 txi.rsem$length[txi.rsem$length == 0] <- 1
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_IOP)
-# dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_OD)
-# dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_OS)
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~sample)
 # dds
 # colData(dds)     # Green box
 # rowData(dds)     # Blue box
 # assay(dds)       # Pink box
-# ############ Filtering ############## 
-# cds <- dds
-# dds <- cds
-# nrow(dds)
-# keep <- rowSums(counts(dds)) > 10   # remove genes without expression in more than 10 sample
-# dds <- dds[keep,]
-# nrow(dds)
 
 #################################################
 ### Step 4: Normalization based on rlog & vsd ###
 #################################################
 setwd("../"); getwd()
 
+vsd <- vst(dds, blind=TRUE)      # Variance Stabilizing Transformation 
+rld <- rlog(dds, blind=TRUE)     # Regularized Log Transformation 
+ntd <- normTransform(dds)        # Log2 Normalized Counts Transformation 
+
 head(txi.rsem$counts, 3)[,1:5]
-txi.rsem$counts[10000,1:53]
-
-vsd <- vst(dds, blind=FALSE)
 head(assay(vsd), 3)[,1:5]
-assay(vsd)[10000,1:53]
-
-rld <- rlog(dds, blind=FALSE)
 head(assay(rld), 3)[,1:5]
-assay(rld)[10000,1:53]
-# test
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~Class_IOP)
-dds <- estimateSizeFactors(dds)
-LOG2 <- log2(counts(dds, normalized=TRUE)+1)
-head(LOG2, 3)[,1:5]
-LOG2[10000,1:53]
+head(assay(ntd), 3)[,1:5]
 
-# ntd <- normTransform(dds)
 # meanSdPlot(assay(ntd))
 # meanSdPlot(assay(vsd))
 # meanSdPlot(assay(rld), bins = 100)
+
+# dim(txi.rsem$counts)
+# dim(assay(vsd))
+# dim(assay(rld))
+# dim(assay(ntd))
+# sub_genes_cnt <- data.frame(t(txi.rsem$counts))   # real counts
 # sub_genes_rld <- data.frame(t(assay(rld)))
-# sub_genes_vst <- data.frame(t(assay(vsd)))
+# sub_genes_vsd <- data.frame(t(assay(vsd)))
+# sub_genes_ntd <- data.frame(t(assay(ntd)))
+# dim(sub_genes_cnt)
 # dim(sub_genes_rld)
-# dim(sub_genes_vst)
+# dim(sub_genes_vsd)
+# dim(sub_genes_ntd)
+# sub_genes_cnt <- sub_genes_cnt[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 # sub_genes_rld <- sub_genes_rld[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
-# sub_genes_vst <- sub_genes_vst[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
-# write.table(sub_genes_rld, file="normalized_rlog_class_IOP.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
-# write.table(sub_genes_vst, file="normalized_vst_class_IOP.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
-sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
-sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
-dim(sub_genes)
+# sub_genes_vsd <- sub_genes_vsd[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
+# sub_genes_ntd <- sub_genes_ntd[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
+# write.table(sub_genes_cnt, file="real_counts.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+# write.table(sub_genes_rld, file="normalized_rlog.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+# write.table(sub_genes_vsd, file="normalized_vst.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+# write.table(sub_genes_ntd, file="normalized_log2.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+
+# sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
+# sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
+# dim(sub_genes)
 
 ######## linear normalization ########
 # normalize(b, method = "standardize", range = c(0, 1), margin = 1L, on.constant = "quiet")
