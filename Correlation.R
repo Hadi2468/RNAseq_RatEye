@@ -45,6 +45,7 @@ selGenes <- subset(sub_genes_c, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000
 
 corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for three genes 
 names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
+corrTable$Class_IOP <- relevel(corrTable$Class_IOP, "Normal")
 
 summary(corrTable)     # Basic statistical analysis
 
@@ -75,10 +76,24 @@ ggplot(corrTable, aes(IOP)) + geom_density(fill="green") + scale_x_continuous(li
 ###################################################
 
 corrTable_new <- cbind(sub_samples$Class_IOP, corrTable)    # Correlation tables for three genes 
-ggscatter(corrTable_new, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", cor.method="spearman", title="Correlation: Pearson,    Non_Normalization",
-          combine = TRUE, add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="IOP", ylab="Real gene expression")
+names(corrTable_new)[1] <- "Class_IOP"
+corrTable_new$Class_IOP <- relevel(corrTable_new$Class_IOP, "Normal")
 
+ggscatter(corrTable_new, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=T, 
+          add="reg.line", conf.int=T, cor.coef=T, xlab="IOP", ylab="Gene expression") + stat_cor(aes(color=Class_IOP), label.x=3) 
 
+######### ggplot2 scatter plot ##########
+ggANG <- ggplot(corrTable_new, aes(x=IOP, y=ANGPT2, color=Class_IOP)) + scale_size_manual(values=c(2,2,2)) +
+  geom_point(aes(size=Class_IOP)) + geom_smooth(method=lm, aes(fill=Class_IOP), se=FALSE, fullrange=TRUE) + 
+  theme(legend.position="top") + labs(y="Expression")
+ggPT <- ggplot(corrTable_new, aes(x=IOP, y=PTPRB, color=Class_IOP)) + scale_size_manual(values=c(2,2,2)) +
+  geom_point(aes(size=Class_IOP)) + geom_smooth(method=lm, aes(fill=Class_IOP), se=FALSE, fullrange=TRUE) + 
+  theme(legend.position="top", axis.title.y = element_blank())
+ggTEK <- ggplot(corrTable_new, aes(x=IOP, y=TEK, color=Class_IOP)) + scale_size_manual(values=c(2,2,2)) +
+  geom_point(aes(size=Class_IOP)) + geom_smooth(method=lm, aes(fill=Class_IOP), se=FALSE, fullrange=TRUE) + 
+  theme(legend.position="top", axis.title.y = element_blank())
+ggarrange(ggANG, ggPT, ggTEK + rremove("x.text"), labels=c("ANGPT2", "PTPRB", "TEK"), ncol=3, nrow=1)
 
 
 ######## "Sex" based scatter plot ######## 
@@ -168,6 +183,23 @@ pcor.test(corrTable$ANGPT2, corrTable$IOP, corrTable$Batch, method="pearson")
 summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age+corrTable$Batch))
 
 summary(lm(corrTable$ANGPT2~corrTable$IOP))
+
+############ t-test Analysis #############
+
+corrTable_IOP2 <- corrTable_new
+for (i in (1:45)) {if (corrTable_IOP2$Class_IOP[i] == "Elevated") {corrTable_IOP2$Class_IOP[i] <- "High"}}
+corrTable_IOP2$Class_IOP <- factor(corrTable_IOP2$Class_IOP)
+
+ggplot(corrTable_IOP2, aes(x=Class_IOP, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1.2)
+
+# H0: Mean of ANGPT2 expression for samples with Normal_IOP = Mean of ANGPT2 expression for samples with High_IOP 
+t.test(ANGPT2 ~ Class_IOP, data=corrTable_IOP2, mu=0, alt="two.sided", conf=0.95, var.eq=F, paired=F)
+
+############ ANOVA Analysis #############
+
+ggplot(corrTable_new, aes(x=Class_IOP, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
+Anova_results <- aov(ANGPT2 ~ Class_IOP, data=corrTable_new)
+summary(Anova_results)
 
 
 #########################################
