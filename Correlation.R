@@ -25,27 +25,26 @@ dim(samples)
 # write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
-sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
+# sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
 sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
-sub_genes_v <- read.csv("normalized_vst.csv", sep=",", header=TRUE)
-sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
-dim(sub_genes_2)
+# sub_genes_v <- read.csv("normalized_vst.csv", sep=",", header=TRUE)
+# sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
+# dim(sub_genes_2)
 dim(sub_genes_r)
-dim(sub_genes_v)
-dim(sub_genes_c)
+# dim(sub_genes_v)
+# dim(sub_genes_c)
 
 ###########################################################################
 ### Step 2: Correlation Analysis: Heatmap, Clustering, and Distribution ###
 ###########################################################################
 
-selGenes <- subset(sub_genes_2, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
+# selGenes <- subset(sub_genes_2, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 selGenes <- subset(sub_genes_r, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
-selGenes <- subset(sub_genes_v, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
-selGenes <- subset(sub_genes_c, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
+# selGenes <- subset(sub_genes_v, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
+# selGenes <- subset(sub_genes_c, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 
 corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for three genes 
 names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
-corrTable$Class_IOP <- relevel(corrTable$Class_IOP, "Normal")
 summary(corrTable)     # Basic statistical analysis
 
 pheatmap(cor(corrTable))
@@ -77,6 +76,7 @@ ggplot(corrTable, aes(IOP)) + geom_density(fill="green") + scale_x_continuous(li
 
 corrTable <- cbind(sub_samples$Class_IOP, corrTable)    # Correlation tables for three genes and three groups of IOP 
 names(corrTable)[1] <- "Class_IOP"
+levels(corrTable$Class_IOP)
 corrTable$Class_IOP <- relevel(corrTable$Class_IOP, "Normal")
 levels(corrTable$Class_IOP)
 
@@ -86,11 +86,14 @@ corrTable_IOP2$Class_IOP <- factor(corrTable_IOP2$Class_IOP)    # Correlation ta
 levels(corrTable_IOP2$Class_IOP)
 
 ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", 
-          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=T, 
-          add="reg.line", conf.int=T, cor.coef=T, xlab="IOP", ylab="Gene expression") + stat_cor(aes(color=Class_IOP), label.x=3) 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="IOP", ylab="Gene expression") + 
+  stat_cor(aes(color=Class_IOP), label.x=3)
+
 ggscatter(corrTable_IOP2, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", 
-          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=T, 
-          add="reg.line", conf.int=T, cor.coef=T, xlab="IOP", ylab="Gene expression") + stat_cor(aes(color=Class_IOP), label.x=3) 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=TRUE, cor.coef=FALSE, xlab="IOP", ylab="Gene expression") + 
+  stat_cor(aes(color=Class_IOP), label.x=3) 
 
 ######### Scatter plot using ggplot2 ##########
 
