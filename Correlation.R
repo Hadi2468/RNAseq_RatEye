@@ -80,20 +80,22 @@ levels(corrTable$Class_IOP)
 corrTable$Class_IOP <- relevel(corrTable$Class_IOP, "Normal")
 levels(corrTable$Class_IOP)
 
-corrTable_IOP2 <- corrTable           
+corrTable_IOP2 <- corrTable 
 for (i in (1:45)) {if (corrTable_IOP2$Class_IOP[i] == "Elevated") {corrTable_IOP2$Class_IOP[i] <- "High"}}
 corrTable_IOP2$Class_IOP <- factor(corrTable_IOP2$Class_IOP)    # Correlation tables for just two groups of IOP
 levels(corrTable_IOP2$Class_IOP)
 
+ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="blue", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="IOP", ylab="Expression")
 ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", 
           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
-          add="reg.line", conf.int=TRUE, cor.coef=TRUE, xlab="IOP", ylab="Gene expression") + 
-  stat_cor(aes(color=Class_IOP), label.x=3)
-
+          add="reg.line", conf.int=TRUE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
+  stat_cor(aes(color=Class_IOP), label.x=-5)
 ggscatter(corrTable_IOP2, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", 
           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
-          add="reg.line", conf.int=TRUE, cor.coef=FALSE, xlab="IOP", ylab="Gene expression") + 
-  stat_cor(aes(color=Class_IOP), label.x=3) 
+          add="reg.line", conf.int=TRUE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
+  stat_cor(aes(color=Class_IOP), label.x=-3) 
 
 ######### Scatter plot using ggplot2 ##########
 
@@ -135,39 +137,56 @@ levels(corrTable$Age)
 levels(corrTable$Sex)
 levels(corrTable$Batch)
 
-######## "Sex" based scatter plot ######## 
+corrTable_Age2 <- corrTable
+levels(corrTable_Age2$Age) <- c("Adolescent", "Adolescent_&_Adult", "Middle_Aged", "Middle_Aged_&_Aged")
+for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Adolescent") {corrTable_Age2$Age[i] <- "Adolescent_&_Adult"}}
+for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Middle_Aged_&_Aged"}} 
+corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
+levels(corrTable_Age2$Age)
 
-ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="blue", cor.method="spearman", 
-          title="Correlation: Spearman,    Normalization: rlog", combine = TRUE, add="reg.line", conf.int=TRUE, 
-          cor.coef=TRUE, xlab="IOP", ylab="Expression")
-ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Sex", cor.method="spearman", 
-          title="Correlation: Spearman,    Normalization: rlog", combine = TRUE, add="reg.line", conf.int=FALSE, 
-          cor.coef=FALSE, xlab="IOP", ylab="Expression", palette=c("red", "pink", "blue"))
-ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Sex", cor.method="spearman", 
-          title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, add="reg.line", conf.int=FALSE, 
-          cor.coef=FALSE, xlab="IOP", ylab="Expression") + stat_cor(aes(color=Sex), label.x=3)
-ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Sex", cor.method="spearman", 
-          title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, add="reg.line", conf.int=FALSE, 
-          cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + stat_cor(aes(color=Sex))
-# ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Sex", cor.method="spearman",
-#           title="Correlation: Spearman,    Normalization: rlog", combine = TRUE, add="reg.line", conf.int=FALSE, 
-#           cor.coef=FALSE, xlab="PTPRB", ylab="TEK", palette=c("red", "pink", "blue"))
+corrTable_Age2 <- corrTable
+levels(corrTable_Age2$Age) <- c("Adolescent", "Others", "Middle_Aged", "Aged")
+for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Adolescent") {corrTable_Age2$Age[i] <- "Others"}}
+for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Others"}} 
+corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
+levels(corrTable_Age2$Age)
 
 ######## "Age" based scatter plot ########
 
-ggscatter(corrTable_new, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age", cor.method="pearson", title="Correlation: Pearson,    Normalization: rlog",
-          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="IOP", ylab="rlog-normalized gene counts", palette=c("green", "red", "blue", "black"))
-ggscatter(corrTable_new, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Age", cor.method="pearson", title="Correlation: Pearson,    Normalization: rlog",
-          combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="ANGPT2", ylab="rlog-normalized gene counts", palette=c("green", "red", "blue", "black")) 
-ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Age", cor.method="pearson", title="Correlation: Pearson,    Normalization: rlog",
-          combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK", palette=c("green", "red", "blue", "black"))
+ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + stat_cor(aes(color=Age), label.x=12)
+ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Age", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + stat_cor(aes(color=Age), label.x=6.3)
+# ggscatter(corrTable, x="PTPRB", y="TEK", size=3, shape=19, color="Age", 
+#           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+#           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="PTPRB", ylab="TEK") + stat_cor(aes(color=Age), label.x=7)
 
-ggscatter(corrTable_new, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age", cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog",
-          combine = TRUE, add="reg.line", conf.int=F, cor.coef=TRUE, xlab="IOP", ylab="rlog-normalized gene counts", palette=c("green", "red", "blue", "black"))
-ggscatter(corrTable_new, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Age", cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog",
-          combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="ANGPT2", ylab="rlog-normalized gene counts", palette=c("green", "red", "blue", "black")) 
-ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Age", cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog",
-          combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK", palette=c("green", "red", "blue", "black"))
+############ ANOVA Analysis #############
+
+# H0: Mean of ANGPT2 expression for samples with all Age gropus are equal 
+ggplot(corrTable, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
+Anova_results <- aov(ANGPT2 ~ Age, data=corrTable)
+summary(Anova_results)
+
+ggplot(corrTable_Age2, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
+Anova_results <- aov(ANGPT2 ~ Age, data=corrTable_Age2)
+summary(Anova_results)
+
+
+
+######## "Sex" based scatter plot ######## 
+
+ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Sex", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + stat_cor(aes(color=Sex), label.x=3)
+ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Sex", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + stat_cor(aes(color=Sex))
+# ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Sex", cor.method="spearman",
+#           title="Correlation: Spearman,    Normalization: rlog", combine = TRUE, add="reg.line", conf.int=FALSE, 
+#           cor.coef=FALSE, xlab="PTPRB", ylab="TEK", palette=c("red", "pink", "blue"))
 
 ######## "Batch" based scatter plot ########
 
@@ -185,17 +204,41 @@ ggscatter(corrTable_new, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, colo
 ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Batch", cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog",
           combine = TRUE, add="reg.line", conf.int=FALSE, cor.coef=TRUE, xlab="PTPRB", ylab="TEK", palette=c("green", "red", "blue", "black"))
            
-######## Partial Correlation Tests(Dr. Chen) ######## 
-corrTable <- cbind(sub_samples$Avg_IOP, sub_samples$AgeInDays, sub_samples$Batch, selGenes)    # Correlation tables for three genes 
-names(corrTable) <- c("IOP", "Age", "Batch", "ANGPT2", "PTPRB", "TEK")
+#######################################################
+### Step 6: Partial Correlation Analysis (Dr. Chen) ###
+#######################################################
 
-pcor.test(corrTable$ANGPT2, corrTable$IOP, corrTable$Age, method="pearson")
-summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age))
+corrTable <- cbind(sub_samples$Avg_IOP, sub_samples$AgeInDays, sub_samples$Sex, selGenes)    # Correlation tables for three genes 
+names(corrTable) <- c("IOP", "Age", "Sex", "ANGPT2", "PTPRB", "TEK")
 
-pcor.test(corrTable$ANGPT2, corrTable$IOP, corrTable$Batch, method="pearson")
-summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age+corrTable$Batch))
+######## Partial Correlation (Dr. Chen) ##########
+pcor.test(corrTable$ANGPT2, corrTable$IOP, corrTable$Age, method="spearman")
+pcor.test(corrTable$ANGPT2, corrTable$IOP, corrTable$Sex, method="spearman")
+pcor.test(corrTable$ANGPT2, corrTable$IOP, c(corrTable$Sex, corrTable$Age), method="spearman")
 
-summary(lm(corrTable$ANGPT2~corrTable$IOP))
+######## Regression (Dr. Chen) ##########
+summary(lm(ANGPT2~IOP, data=corrTable))                                     # p-value: 0.132
+summary(lm(ANGPT2~IOP+Age, data=corrTable))                                 # p-value: 0.2225
+summary(lm(ANGPT2~IOP+Sex, data=corrTable))                                 # p-value: 0.0.3689
+summary(lm(ANGPT2~IOP+Age+Sex, data=corrTable))                             # p-value: 0.4302
+
+######## ANOVA ##########
+anova(lm(corrTable$ANGPT2~corrTable$IOP))                                   # p-value: 0.132
+anova(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age))                     # p-value: 0.1332                   
+anova(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Sex))                     # p-value: 0.1371
+anova(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age+corrTable$Sex))       # p-value: 0.1387
+
+######## Omitting Intercept ##########
+summary(lm(corrTable$ANGPT2~corrTable$IOP-1))                               # p-value: < 2.2e-16
+summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age-1))                 # p-value: < 2.2e-16
+summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Sex-1))                 # p-value: < 2.2e-16
+summary(lm(corrTable$ANGPT2~corrTable$IOP+corrTable$Age+corrTable$Sex-1))   # p-value: < 2.2e-16
+
+######## Correct Regression ##########
+summary(lm(IOP~ANGPT2, data=corrTable))                                     # p-value: 0.132
+summary(lm(IOP~ANGPT2+Age, data=corrTable))                                 # p-value: 0.2208
+summary(lm(IOP~ANGPT2+Sex, data=corrTable))                                 # p-value: 0.3468
+summary(lm(IOP~ANGPT2+Age+Sex, data=corrTable))                             # p-value: 0.4087
 
 
 
@@ -204,5 +247,3 @@ summary(lm(corrTable$ANGPT2~corrTable$IOP))
 
 
 
-
-# write.table(ThreeGenes, file="ThreeGenes.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)

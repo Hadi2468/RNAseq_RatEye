@@ -146,3 +146,9 @@ head(assay(ntd), 3)[,1:5]
 
 ######## linear normalization ########
 # normalize(b, method = "standardize", range = c(0, 1), margin = 1L, on.constant = "quiet")
+
+
+
+
+
+# write.table(ThreeGenes, file="ThreeGenes.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
