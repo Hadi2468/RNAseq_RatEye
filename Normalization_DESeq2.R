@@ -89,6 +89,12 @@ txi.rsem <- tximport(RSEM_output_gene_files, type="rsem", txIn=FALSE, txOut=FALS
 # head(txi_i.rsem$counts)[,1:5]
 # head(txi_i.rsem$length)[,1:5]
 
+########### Add IOP as gene for normalization ##########
+
+txi.rsem$counts <- rbind(txi.rsem$counts, t(samples$Avg_IOP))
+txi.rsem$abundance <- rbind(txi.rsem$abundance, txi.rsem$abundance[32883,])
+txi.rsem$length <- rbind(txi.rsem$length, txi.rsem$length[32883,])
+
 #########################################################################################
 ### Step 3: Producing the DESeq2 data frame based on the outputs of Step 1 and Step 2 ###
 #########################################################################################
@@ -106,9 +112,9 @@ dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~sample)
 #################################################
 setwd("../"); getwd()
 
-vsd <- vst(dds, blind=TRUE)      # Variance Stabilizing Transformation 
+# vsd <- vst(dds, blind=TRUE)      # Variance Stabilizing Transformation 
 rld <- rlog(dds, blind=TRUE)     # Regularized Log Transformation 
-ntd <- normTransform(dds)        # Log2 Normalized Counts Transformation 
+# ntd <- normTransform(dds)        # Log2 Normalized Counts Transformation 
 
 head(txi.rsem$counts, 3)[,1:5]
 head(assay(vsd), 3)[,1:5]
@@ -121,18 +127,18 @@ head(assay(ntd), 3)[,1:5]
 
 # dim(txi.rsem$counts)
 # dim(assay(vsd))
-# dim(assay(rld))
+dim(assay(rld))
 # dim(assay(ntd))
 # sub_genes_cnt <- data.frame(t(txi.rsem$counts))   # real counts
-# sub_genes_rld <- data.frame(t(assay(rld)))
+sub_genes_rld <- data.frame(t(assay(rld)))
 # sub_genes_vsd <- data.frame(t(assay(vsd)))
 # sub_genes_ntd <- data.frame(t(assay(ntd)))
 # dim(sub_genes_cnt)
-# dim(sub_genes_rld)
+dim(sub_genes_rld)
 # dim(sub_genes_vsd)
 # dim(sub_genes_ntd)
 # sub_genes_cnt <- sub_genes_cnt[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
-# sub_genes_rld <- sub_genes_rld[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
+sub_genes_rld <- sub_genes_rld[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 # sub_genes_vsd <- sub_genes_vsd[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 # sub_genes_ntd <- sub_genes_ntd[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 # write.table(sub_genes_cnt, file="real_counts.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
