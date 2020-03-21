@@ -47,6 +47,16 @@ corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for th
 names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
 summary(corrTable)     # Basic statistical analysis
 
+ggqqplot(corrTable$ANGPT2)
+ggqqplot(corrTable$TEK)
+ggqqplot(corrTable$PTPRB)
+ggqqplot(corrTable$IOP)
+
+shapiro.test(corrTable$ANGPT2)
+shapiro.test(corrTable$TEK)
+shapiro.test(corrTable$PTPRB)
+shapiro.test(corrTable$IOP)
+
 pheatmap(cor(corrTable))
 
 ######## Pearson Correlatoin ########
