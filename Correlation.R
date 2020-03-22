@@ -9,10 +9,11 @@
 # install.packages("pheatmap")
 # install.packages("ppcor")
 # install.packages("rcompanion")
+install.packages("caret")
 
 Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", 
-              "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "ppcor", "BBmisc", "mAPKL", "rcompanion")
-lapply(Packages, library, character.only = TRUE)
+              "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "ppcor", "BBmisc", "rcompanion", "caret") #"mAPKL",
+lapply(Packages, library, character.only=TRUE)
 
 ####################################################
 ### Step 1: Import 45 samples' information files ###
@@ -20,15 +21,15 @@ lapply(Packages, library, character.only = TRUE)
 
 getwd()
 setwd("./Data"); getwd()
-samples <- read.csv("samples53.csv", sep=",", header=TRUE)
-dim(samples)
+# samples <- read.csv("samples53.csv", sep=",", header=TRUE)
+# dim(samples)
 # sub_samples <- samples[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 # write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
 # sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
 sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
-sub_genes_r <- read.csv("normalized_rlog_IOP.csv", sep=",", header=TRUE) # Genes + IOP
+# sub_genes_r <- read.csv("normalized_rlog_IOP.csv", sep=",", header=TRUE) # Genes + IOP
 # sub_genes_v <- read.csv("normalized_vst.csv", sep=",", header=TRUE)
 # sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
 # dim(sub_genes_2)
@@ -42,14 +43,14 @@ dim(sub_genes_r)
 
 # selGenes <- subset(sub_genes_2, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 selGenes <- subset(sub_genes_r, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
-names(sub_genes_r)[32884] <- "IOP_norm"
-selGenes <- subset(sub_genes_r, select=c(IOP_norm, ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
+# names(sub_genes_r)[32884] <- "IOP_norm"
+# selGenes <- subset(sub_genes_r, select=c(IOP_norm, ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 # selGenes <- subset(sub_genes_v, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 # selGenes <- subset(sub_genes_c, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 
 corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for three genes 
 names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
-names(corrTable) <- c("IOP", "IOP_norm", "ANGPT2", "PTPRB", "TEK")
+# names(corrTable) <- c("IOP", "IOP_norm", "ANGPT2", "PTPRB", "TEK")
 summary(corrTable)     # Basic statistical analysis
 
 ######## Check Normality ########
@@ -63,33 +64,18 @@ shapiro.test(corrTable$PTPRB)
 shapiro.test(corrTable$TEK)
 shapiro.test(corrTable$IOP)
 
-corrTable$IOP_norm <- normalize(corrTable$IOP, method="standardize", range=c(0, 1), margin=1L, on.constant="quiet")
-shapiro.test(corrTable$IOP_norm)
+######## IOP Normalization Methods ########
 
-normalize_2 <- function(x) {return ((x - mean(x)) / sd(x))}
-normalize_3 <- function(x) {return ( 1+1023*(x - min(x)) / sd(x))}
-normalize_3 <- preprocess(corrTable$IOP,log2=TRUE, norm="ALL", destname=NULL)
-corrTable$IOP_norm <- normalize_2(corrTable$IOP)
-corrTable$IOP_norm <- normalize_3(corrTable$IOP)
-corrTable$IOP_norm <- log2(corrTable$IOP)
-
-########## Box-Cox power transformation ##########
-Box = boxcox(corrTable$IOP ~ 1, lambda = seq(-1,1,0.1))
-Cox = data.frame(Box$x, Box$y)            # Create a data frame with the results
-Cox2 = Cox[with(Cox, order(-Cox$Box.y)),] # Order the new data frame by decreasing y
-Cox2[1,]                                  # Display the lambda with the greatest
-lambda = Cox2[1, "Box.x"]                 # Extract that lambda
-T_box = (corrTable$IOP ^ lambda - 1)/lambda   # Transform the original data
-plotNormalHistogram(T_box)
-corrTable$IOP_norm <- T_box
-
-
-summary(corrTable$IOP_norm)
-shapiro.test(corrTable$IOP_norm)
-
-
-
-
+##### Method 2: standard transformation #####
+corrTable$IOP <- (corrTable$IOP - mean(corrTable$IOP)) / sd(corrTable$IOP)
+corrTable$IOP <- normalize(corrTable$IOP, method="standardize", range=c(0, 1), margin=1L, on.constant="quiet")
+##### Method 3: Box-Cox power transformation #####
+Lambda = preProcess(corrTable, method=c("BoxCox"))[2]$bc$IOP$lambda
+corrTable$IOP = (corrTable$IOP ^ Lambda - 1) / Lambda
+##### Method 4: Log transformation #####
+corrTable$IOP <- log(corrTable$IOP)
+corrTable$IOP <- log2(corrTable$IOP)
+corrTable$IOP <- log10(corrTable$IOP)
 
 ######## Pearson Correlatoin ########
 
