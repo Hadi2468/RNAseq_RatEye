@@ -90,7 +90,6 @@ txi.rsem <- tximport(RSEM_output_gene_files, type="rsem", txIn=FALSE, txOut=FALS
 # head(txi_i.rsem$length)[,1:5]
 
 ########### Add IOP as gene for normalization ##########
-
 txi.rsem$counts <- rbind(txi.rsem$counts, t(samples$Avg_IOP))
 txi.rsem$abundance <- rbind(txi.rsem$abundance, txi.rsem$abundance[32883,])
 txi.rsem$length <- rbind(txi.rsem$length, txi.rsem$length[32883,])
@@ -145,6 +144,7 @@ sub_genes_rld <- sub_genes_rld[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 # write.table(sub_genes_rld, file="normalized_rlog.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 # write.table(sub_genes_vsd, file="normalized_vst.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 # write.table(sub_genes_ntd, file="normalized_log2.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+write.table(sub_genes_rld, file="normalized_rlog_IOP.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 
 # sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
 # sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
