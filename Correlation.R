@@ -8,9 +8,10 @@
 # install.packages("ggpubr")
 # install.packages("pheatmap")
 # install.packages("ppcor")
+# install.packages("rcompanion")
 
 Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", 
-              "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "ppcor", "BBmisc")
+              "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "ppcor", "BBmisc", "mAPKL", "rcompanion")
 lapply(Packages, library, character.only = TRUE)
 
 ####################################################
@@ -27,7 +28,7 @@ sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
 # sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
 sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
-sub_genes_r <- sub_genes_rld
+sub_genes_r <- read.csv("normalized_rlog_IOP.csv", sep=",", header=TRUE) # Genes + IOP
 # sub_genes_v <- read.csv("normalized_vst.csv", sep=",", header=TRUE)
 # sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
 # dim(sub_genes_2)
@@ -41,6 +42,7 @@ dim(sub_genes_r)
 
 # selGenes <- subset(sub_genes_2, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 selGenes <- subset(sub_genes_r, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
+names(sub_genes_r)[32884] <- "IOP_norm"
 selGenes <- subset(sub_genes_r, select=c(IOP_norm, ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 # selGenes <- subset(sub_genes_v, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
 # selGenes <- subset(sub_genes_c, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek))
@@ -63,6 +65,31 @@ shapiro.test(corrTable$IOP)
 
 corrTable$IOP_norm <- normalize(corrTable$IOP, method="standardize", range=c(0, 1), margin=1L, on.constant="quiet")
 shapiro.test(corrTable$IOP_norm)
+
+normalize_2 <- function(x) {return ((x - mean(x)) / sd(x))}
+normalize_3 <- function(x) {return ( 1+1023*(x - min(x)) / sd(x))}
+normalize_3 <- preprocess(corrTable$IOP,log2=TRUE, norm="ALL", destname=NULL)
+corrTable$IOP_norm <- normalize_2(corrTable$IOP)
+corrTable$IOP_norm <- normalize_3(corrTable$IOP)
+corrTable$IOP_norm <- log2(corrTable$IOP)
+
+########## Box-Cox power transformation ##########
+Box = boxcox(corrTable$IOP ~ 1, lambda = seq(-1,1,0.1))
+Cox = data.frame(Box$x, Box$y)            # Create a data frame with the results
+Cox2 = Cox[with(Cox, order(-Cox$Box.y)),] # Order the new data frame by decreasing y
+Cox2[1,]                                  # Display the lambda with the greatest
+lambda = Cox2[1, "Box.x"]                 # Extract that lambda
+T_box = (corrTable$IOP ^ lambda - 1)/lambda   # Transform the original data
+plotNormalHistogram(T_box)
+corrTable$IOP_norm <- T_box
+
+
+summary(corrTable$IOP_norm)
+shapiro.test(corrTable$IOP_norm)
+
+
+
+
 
 ######## Pearson Correlatoin ########
 
