@@ -9,10 +9,12 @@
 # install.packages("pheatmap")
 # install.packages("ppcor")
 # install.packages("rcompanion")
-install.packages("caret")
+# install.packages("caret")
+# install.packages("kader")
+install.packages("moments")
 
-Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", 
-              "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "ppcor", "BBmisc", "rcompanion", "caret") #"mAPKL",
+Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", "kader", 
+              "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "ppcor", "BBmisc", "rcompanion", "caret", "moments")
 lapply(Packages, library, character.only=TRUE)
 
 ####################################################
@@ -76,14 +78,20 @@ corrTable$IOP = (corrTable$IOP ^ Lambda - 1) / Lambda
 corrTable$IOP <- log(corrTable$IOP)
 corrTable$IOP <- log2(corrTable$IOP)
 corrTable$IOP <- log10(corrTable$IOP)
+##### Method 5: Square root transformation #####
+corrTable$IOP <- sqrt(corrTable$IOP)
+##### Method 6: Cube root transformation #####
+corrTable$IOP <- kader:::cuberoot(corrTable$IOP)
+
+skewness(corrTable$IOP)
 
 ######## Pearson Correlatoin ########
 
-pheatmap(cor(corrTable))
-
-corrplot(cor(corrTable, method="pearson"), method="color", type="upper", order="hclust", 
-         col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), 
-         addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
+# pheatmap(cor(corrTable))
+# 
+# corrplot(cor(corrTable, method="pearson"), method="color", type="upper", order="hclust", 
+#          col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), 
+#          addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 
 ######## Spearman Correlatoin ########
 
@@ -99,7 +107,7 @@ ThreeGenes$Expression[46:90] <- corrTable$PTPRB
 ThreeGenes$Expression[91:135] <- corrTable$TEK
 ggplot(ThreeGenes, aes(Expression, fill=Gene)) + geom_density(alpha=0.6) +   scale_fill_manual(values=c("red", "blue", "yellow"))
 ggplot(corrTable, aes(IOP)) + geom_density(fill="green") + scale_x_continuous(limits=c(10, 25))
-ggplot(corrTable, aes(IOP_norm)) + geom_density(fill="green") 
+ggplot(corrTable, aes(IOP)) + geom_density(fill="green") 
 
 ###################################################
 ### Step 3: Correlation Analysis: Scatter Plots ###
