@@ -28,7 +28,7 @@ samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 ######## Re-Scaling Age ###########
 # samples[c(3, 14, 42:47), 8] = NA
 # d <- scale(as.numeric(samples$AgeInDays[!is.na(samples$AgeInDays)]), center=FALSE)
-# samples$Age.scaled <- t(cbind(t(d[1:2]), NA, t(d[(3:12)]), NA, t(d[(13:39)]), NA, NA, NA, NA, NA, NA, t(d[(40:45)])))
+# samples$Age.scaled <- t(cbind(t(d[1:2]), 0, t(d[(3:12)]), 0, t(d[(13:39)]), 0, 0, 0, 0, 0, 0, t(d[(40:45)])))
 # write.table(samples, file="samples53.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 #################################
 # new_samples <- left_join(samples53, samples, by=c("sample", "SeqType"))
@@ -108,7 +108,9 @@ txi.rsem <- tximport(RSEM_output_gene_files, type="rsem", txIn=FALSE, txOut=FALS
 # row.names(samples)
 txi.rsem$length[txi.rsem$length == 0] <- 1
 # dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~sample)
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, design=~1)    # Solution by Michael Love
+# dds <- DESeqDataSetFromTximport(txi.rsem, samples, design=~1)    # First solution by Michael Love
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, design=~Sex+Age.scaled)    # Second solution by Michael Love
+############### Batch in the design formula is linear combination of Sex and must be removed! ##########
 
 # dds
 # colData(dds)     # Green box
@@ -120,7 +122,7 @@ dds <- DESeqDataSetFromTximport(txi.rsem, samples, design=~1)    # Solution by M
 #################################################
 setwd("../"); getwd()
 
-# vsd <- vst(dds, blind=FALSE)      # Variance Stabilizing Transformation 
+# vsd <- vst(dds, blind=FALSE)      # Variance Stabilizing Transformation
 rld <- rlog(dds, blind=FALSE)     # Regularized Log Transformation 
 # ntd <- normTransform(dds)        # Log2 Normalized Counts Transformation 
 
@@ -155,7 +157,7 @@ dim(sub_genes_rld)
 # write.table(sub_genes_vsd, file="normalized_vst.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 # write.table(sub_genes_ntd, file="normalized_log2.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 # write.table(sub_genes_rld, file="normalized_rlog_IOP.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
-write.table(sub_genes_rld, file="normalized_rlog_Michael.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+# write.table(sub_genes_rld, file="normalized_rlog_Michael.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 
 # sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
 # sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)

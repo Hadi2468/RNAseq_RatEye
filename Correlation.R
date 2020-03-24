@@ -12,8 +12,10 @@
 # install.packages("caret")
 # install.packages("kader")
 # install.packages("moments")
+# install.packages("remotes")
+# remotes::install_github("ProcessMiner/nlcor")
 
-Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", "kader", 
+Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", "kader", "remotes", "nlcor", 
               "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "ppcor", "BBmisc", "rcompanion", "caret", "moments")
 lapply(Packages, library, character.only=TRUE)
 
@@ -23,18 +25,12 @@ lapply(Packages, library, character.only=TRUE)
 
 getwd()
 setwd("./Data"); getwd()
-# samples <- read.csv("samples53.csv", sep=",", header=TRUE)
+samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 # dim(samples)
 # sub_samples <- samples[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 # write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
-
-######## Re-Scaling #############
-samples$Age.scaled <- scale(samples$AgeInDays)
-
-
-
 # sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
 # sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
 sub_genes_r <- read.csv("normalized_rlog_Michael.csv", sep=",", header=TRUE)   # Solution by Michael Love
@@ -43,9 +39,8 @@ sub_genes_r <- read.csv("normalized_rlog_Michael.csv", sep=",", header=TRUE)   #
 # sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
 # dim(sub_genes_2)
 dim(sub_genes_r)
-
-# dim(sub_genes_v)
-# dim(sub_genes_c)
+dim(sub_genes_v)
+dim(sub_genes_c)
 
 ###########################################################################
 ### Step 2: Correlation Analysis: Heatmap, Clustering, and Distribution ###
@@ -63,8 +58,16 @@ names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
 # names(corrTable) <- c("IOP", "IOP_norm", "ANGPT2", "PTPRB", "TEK")
 summary(corrTable)     # Basic statistical analysis
 
-######## Check Normality ########
+########## DR_Chen requested table ##############
+# Dr_Chen <- cbind(samples[,c(1, 22, 20, 21, 19, 8, 23, 4)], 
+#                  subset(sub_genes_r, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek)),
+#                  subset(sub_genes_v, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek)),
+#                  subset(sub_genes_c, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek)))
+# names(Dr_Chen) <- c("sample", "IOP", "OD", "OS", "IOP_class", "Age", "Age_class", "Sex", "ANGPT2_rlog", "PTPRB_rlog", "TEK_rlog",
+#                     "ANGPT2_vst", "PTPRB_vst", "TEK_vst", "ANGPT2_raw", "PTPRB_raw", "TEK_raw")
+# write.table(Dr_Chen, file="Dr_Chen.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 
+######## Check Normality ########
 # ggqqplot(corrTable$ANGPT2)
 # ggqqplot(corrTable$PTPRB)
 # ggqqplot(corrTable$TEK)
@@ -75,7 +78,6 @@ shapiro.test(corrTable$TEK)
 shapiro.test(corrTable$IOP)
 
 ######## IOP Normalization Methods ########
-
 ##### Method 2: standard transformation #####
 # corrTable$IOP <- (corrTable$IOP - mean(corrTable$IOP)) / sd(corrTable$IOP)
 # corrTable$IOP <- normalize(corrTable$IOP, method="standardize", range=c(0, 1), margin=1L, on.constant="quiet")
@@ -94,7 +96,6 @@ shapiro.test(corrTable$IOP)
 # skewness(corrTable$IOP)
 
 ######## Pearson Correlatoin ########
-
 # pheatmap(cor(corrTable))
 # 
 # corrplot(cor(corrTable, method="pearson"), method="color", type="upper", order="hclust", 
@@ -102,13 +103,18 @@ shapiro.test(corrTable$IOP)
 #          addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 
 ######## Spearman Correlatoin ########
-
 corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order="hclust", 
          col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), 
          addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 
-######## Probability Density Function ########
+######## NonLinear Correlatoin ########
+cor(corrTable$IOP, corrTable$ANGPT2)
+nlcor(corrTable$IOP, corrTable$ANGPT2, plt = T)
+c$cor.estimate
+c$adjusted.p.value
+print(c$cor.plot)
 
+######## Probability Density Function ########
 ThreeGenes <- read.csv("ThreeGenes.csv", sep=",", header=TRUE)
 ThreeGenes$Expression[1:45] <- corrTable$ANGPT2
 ThreeGenes$Expression[46:90] <- corrTable$PTPRB
@@ -127,7 +133,7 @@ levels(corrTable$Class_IOP)
 corrTable$Class_IOP <- relevel(corrTable$Class_IOP, "Normal")
 levels(corrTable$Class_IOP)
 
-corrTable_IOP2 <- corrTable 
+corrTable_IOP2 <- corrTable    # Two subgroups of IOP
 for (i in (1:45)) {if (corrTable_IOP2$Class_IOP[i] == "Elevated") {corrTable_IOP2$Class_IOP[i] <- "High"}}
 corrTable_IOP2$Class_IOP <- factor(corrTable_IOP2$Class_IOP)    # Correlation tables for just two groups of IOP
 levels(corrTable_IOP2$Class_IOP)
@@ -138,7 +144,7 @@ ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, c
 ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", 
           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
           add="reg.line", conf.int=TRUE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
-  stat_cor(aes(color=Class_IOP), label.x=-5)
+  stat_cor(aes(color=Class_IOP), label.x=12)
 ggscatter(corrTable_IOP2, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", 
           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
           add="reg.line", conf.int=TRUE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
