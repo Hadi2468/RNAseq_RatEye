@@ -29,9 +29,16 @@ setwd("./Data"); getwd()
 # write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
+
+######## Re-Scaling #############
+samples$Age.scaled <- scale(samples$AgeInDays)
+
+
+
 # sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
-sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
-# sub_genes_r <- read.csv("normalized_rlog_IOP.csv", sep=",", header=TRUE) # Genes + IOP
+# sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
+sub_genes_r <- read.csv("normalized_rlog_Michael.csv", sep=",", header=TRUE)   # Solution by Michael Love
+# sub_genes_r <- read.csv("normalized_rlog_IOP.csv", sep=",", header=TRUE)     # Genes + IOP
 # sub_genes_v <- read.csv("normalized_vst.csv", sep=",", header=TRUE)
 # sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
 # dim(sub_genes_2)
@@ -78,7 +85,7 @@ shapiro.test(corrTable$IOP)
 ##### Method 4: Log transformation #####
 # corrTable$IOP <- log(corrTable$IOP)
 # corrTable$IOP <- log2(corrTable$IOP)
-corrTable$IOP <- log10(corrTable$IOP)
+# corrTable$IOP <- log10(corrTable$IOP)
 ##### Method 5: Square root transformation #####
 # corrTable$IOP <- sqrt(corrTable$IOP)
 ##### Method 6: Cube root transformation #####

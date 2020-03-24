@@ -24,6 +24,13 @@ lapply(Packages, library, character.only = TRUE)
 getwd()
 setwd("./Data"); getwd()
 samples <- read.csv("samples53.csv", sep=",", header=TRUE)
+
+######## Re-Scaling Age ###########
+# samples[c(3, 14, 42:47), 8] = NA
+# d <- scale(as.numeric(samples$AgeInDays[!is.na(samples$AgeInDays)]), center=FALSE)
+# samples$Age.scaled <- t(cbind(t(d[1:2]), NA, t(d[(3:12)]), NA, t(d[(13:39)]), NA, NA, NA, NA, NA, NA, t(d[(40:45)])))
+# write.table(samples, file="samples53.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+#################################
 # new_samples <- left_join(samples53, samples, by=c("sample", "SeqType"))
 # row.names(samples) <- samples$sample
 # for (i in (1:53)) {
@@ -90,9 +97,9 @@ txi.rsem <- tximport(RSEM_output_gene_files, type="rsem", txIn=FALSE, txOut=FALS
 # head(txi_i.rsem$length)[,1:5]
 
 ########### Add IOP as gene for normalization ##########
-txi.rsem$counts <- rbind(txi.rsem$counts, t(samples$Avg_IOP))
-txi.rsem$abundance <- rbind(txi.rsem$abundance, txi.rsem$abundance[32883,])
-txi.rsem$length <- rbind(txi.rsem$length, txi.rsem$length[32883,])
+# txi.rsem$counts <- rbind(txi.rsem$counts, t(samples$Avg_IOP))
+# txi.rsem$abundance <- rbind(txi.rsem$abundance, txi.rsem$abundance[32883,])
+# txi.rsem$length <- rbind(txi.rsem$length, txi.rsem$length[32883,])
 
 #########################################################################################
 ### Step 3: Producing the DESeq2 data frame based on the outputs of Step 1 and Step 2 ###
@@ -101,7 +108,7 @@ txi.rsem$length <- rbind(txi.rsem$length, txi.rsem$length[32883,])
 # row.names(samples)
 txi.rsem$length[txi.rsem$length == 0] <- 1
 # dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~sample)
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, design=~1)    # Solution of Michael Love
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, design=~1)    # Solution by Michael Love
 
 # dds
 # colData(dds)     # Green box
@@ -140,13 +147,15 @@ dim(sub_genes_rld)
 # dim(sub_genes_ntd)
 # sub_genes_cnt <- sub_genes_cnt[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 sub_genes_rld <- sub_genes_rld[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
+dim(sub_genes_rld)
 # sub_genes_vsd <- sub_genes_vsd[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 # sub_genes_ntd <- sub_genes_ntd[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
 # write.table(sub_genes_cnt, file="real_counts.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 # write.table(sub_genes_rld, file="normalized_rlog.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 # write.table(sub_genes_vsd, file="normalized_vst.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 # write.table(sub_genes_ntd, file="normalized_log2.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
-write.table(sub_genes_rld, file="normalized_rlog_IOP.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+# write.table(sub_genes_rld, file="normalized_rlog_IOP.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+write.table(sub_genes_rld, file="normalized_rlog_Michael.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 
 # sub_genes <- read.csv("normalized_rlog_class_IOP.csv", sep=",", header=TRUE)
 # sub_genes <- read.csv("normalized_vst_class_IOP.csv", sep=",", header=TRUE)
