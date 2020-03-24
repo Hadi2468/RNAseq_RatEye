@@ -100,7 +100,9 @@ txi.rsem$length <- rbind(txi.rsem$length, txi.rsem$length[32883,])
 # colnames(txi.rsem$counts)
 # row.names(samples)
 txi.rsem$length[txi.rsem$length == 0] <- 1
-dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~sample)
+# dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~sample)
+dds <- DESeqDataSetFromTximport(txi.rsem, samples, design=~1)    # Solution of Michael Love
+
 # dds
 # colData(dds)     # Green box
 # rowData(dds)     # Blue box
@@ -111,8 +113,8 @@ dds <- DESeqDataSetFromTximport(txi.rsem, samples, ~sample)
 #################################################
 setwd("../"); getwd()
 
-# vsd <- vst(dds, blind=TRUE)      # Variance Stabilizing Transformation 
-rld <- rlog(dds, blind=TRUE)     # Regularized Log Transformation 
+# vsd <- vst(dds, blind=FALSE)      # Variance Stabilizing Transformation 
+rld <- rlog(dds, blind=FALSE)     # Regularized Log Transformation 
 # ntd <- normTransform(dds)        # Log2 Normalized Counts Transformation 
 
 head(txi.rsem$counts, 3)[,1:5]
