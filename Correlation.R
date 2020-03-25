@@ -39,8 +39,8 @@ sub_genes_r <- read.csv("normalized_rlog_Michael.csv", sep=",", header=TRUE)   #
 # sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
 # dim(sub_genes_2)
 dim(sub_genes_r)
-dim(sub_genes_v)
-dim(sub_genes_c)
+# dim(sub_genes_v)
+# dim(sub_genes_c)
 
 ###########################################################################
 ### Step 2: Correlation Analysis: Heatmap, Clustering, and Distribution ###
@@ -108,11 +108,24 @@ corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order=
          addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 
 ######## NonLinear Correlatoin ########
-cor(corrTable$IOP, corrTable$ANGPT2)
-nlcor(corrTable$IOP, corrTable$ANGPT2, plt = T)
-c$cor.estimate
-c$adjusted.p.value
-print(c$cor.plot)
+cor(corrTable$ANGPT2, corrTable$IOP)
+nlcor(corrTable$ANGPT2, corrTable$IOP, plt=TRUE)
+
+cor(corrTable$ANGPT2, corrTable$PTPRB)
+nlcor(corrTable$ANGPT2, corrTable$PTPRB, plt=TRUE)
+
+cor(corrTable$ANGPT2, corrTable$TEK)
+nlcor(corrTable$ANGPT2, corrTable$TEK, plt=TRUE)
+
+cor(corrTable$PTPRB, corrTable$IOP)
+nlcor(corrTable$PTPRB, corrTable$IOP, plt=TRUE)
+
+cor(corrTable$TEK, corrTable$IOP)
+nlcor(corrTable$TEK, corrTable$IOP, plt=TRUE)
+
+# c$cor.estimate
+# c$adjusted.p.value
+# print(c$cor.plot)
 
 ######## Probability Density Function ########
 ThreeGenes <- read.csv("ThreeGenes.csv", sep=",", header=TRUE)
