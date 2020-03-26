@@ -14,9 +14,11 @@
 # install.packages("moments")
 # install.packages("remotes")
 # remotes::install_github("ProcessMiner/nlcor")
+# remove.packages("nlcor")
 
-Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", "kader", "remotes", "nlcor", 
-              "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "ppcor", "BBmisc", "rcompanion", "caret", "moments")
+Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", 
+              "kader", "remotes", "nlcor", "corrplot", "RColorBrewer", "ggpubr", "pheatmap", 
+              "ppcor", "BBmisc", "rcompanion", "caret", "moments", "devtools")
 lapply(Packages, library, character.only=TRUE)
 
 ####################################################
@@ -25,21 +27,18 @@ lapply(Packages, library, character.only=TRUE)
 
 getwd()
 setwd("./Data"); getwd()
-samples <- read.csv("samples53.csv", sep=",", header=TRUE)
-# dim(samples)
-# sub_samples <- samples[-c(3, 14, 42, 43, 44, 45, 46, 47), ]
-# write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+# samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
 # sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
-# sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
-sub_genes_r <- read.csv("normalized_rlog_Michael.csv", sep=",", header=TRUE)   # Solution by Michael Love
-# sub_genes_r <- read.csv("normalized_rlog_IOP.csv", sep=",", header=TRUE)     # Genes + IOP
-# sub_genes_v <- read.csv("normalized_vst.csv", sep=",", header=TRUE)
-# sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
 # dim(sub_genes_2)
+# sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
+# sub_genes_r <- read.csv("normalized_rlog_IOP.csv", sep=",", header=TRUE)     # Genes + IOP
+sub_genes_r <- read.csv("normalized_rlog_Michael.csv", sep=",", header=TRUE)   # Solution by Michael Love
 dim(sub_genes_r)
+# sub_genes_v <- read.csv("normalized_vst.csv", sep=",", header=TRUE)
 # dim(sub_genes_v)
+# sub_genes_c <- read.csv("real_counts.csv", sep=",", header=TRUE)
 # dim(sub_genes_c)
 
 ###########################################################################
@@ -57,6 +56,7 @@ corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for th
 names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
 # names(corrTable) <- c("IOP", "IOP_norm", "ANGPT2", "PTPRB", "TEK")
 summary(corrTable)     # Basic statistical analysis
+plot(corrTable$IOP, corrTable$ANGPT2)
 
 ########## DR_Chen requested table ##############
 # Dr_Chen <- cbind(samples[,c(1, 22, 20, 21, 19, 8, 23, 4)], 
@@ -108,20 +108,28 @@ corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order=
          addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 
 ######## NonLinear Correlatoin ########
+
 cor(corrTable$ANGPT2, corrTable$IOP)
-nlcor(corrTable$ANGPT2, corrTable$IOP, plt=TRUE)
+nonlinear.cor <- nlcor(corrTable$ANGPT2, corrTable$IOP, plt=T)
+print(nonlinear.cor$cor.plot)
+
+nlcor(corrTable$IOP, corrTable$ANGPT2, plt=T)
 
 cor(corrTable$ANGPT2, corrTable$PTPRB)
-nlcor(corrTable$ANGPT2, corrTable$PTPRB, plt=TRUE)
+nlcor(corrTable$ANGPT2, corrTable$PTPRB, plt=T)
+nlcor(corrTable$PTPRB, corrTable$ANGPT2, plt=T)
 
 cor(corrTable$ANGPT2, corrTable$TEK)
-nlcor(corrTable$ANGPT2, corrTable$TEK, plt=TRUE)
+nlcor(corrTable$ANGPT2, corrTable$TEK, plt=T)
+nlcor(corrTable$TEK, corrTable$ANGPT2, plt=T)
 
 cor(corrTable$PTPRB, corrTable$IOP)
-nlcor(corrTable$PTPRB, corrTable$IOP, plt=TRUE)
+nlcor(corrTable$PTPRB, corrTable$IOP, plt=T)
+nlcor(corrTable$IOP, corrTable$PTPRB, plt=T)
 
-cor(corrTable$TEK, corrTable$IOP)
-nlcor(corrTable$TEK, corrTable$IOP, plt=TRUE)
+cor(corrTable$IOP, corrTable$TEK)
+nlcor(corrTable$IOP, corrTable$TEK, plt=T)
+nlcor(corrTable$TEK, corrTable$IOP, plt=T)
 
 # c$cor.estimate
 # c$adjusted.p.value
