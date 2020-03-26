@@ -15,15 +15,18 @@
 # install.packages("remotes")
 # remotes::install_github("ProcessMiner/nlcor")
 # remove.packages("nlcor")
+# install.packages("readxl")
+# install.packages('NNS')
 
 Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", 
-              "kader", "remotes", "nlcor", "corrplot", "RColorBrewer", "ggpubr", "pheatmap", 
-              "ppcor", "BBmisc", "rcompanion", "caret", "moments", "devtools")
+              "kader", "remotes", "nlcor", "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "NNS", 
+              "ppcor", "BBmisc", "rcompanion", "caret", "moments", "devtools", "readxl")
 lapply(Packages, library, character.only=TRUE)
 
 ####################################################
 ### Step 1: Import 45 samples' information files ###
 ####################################################
+tt <- read_excel("test.xlsx", 1)
 
 getwd()
 setwd("./Data"); getwd()
@@ -57,6 +60,7 @@ names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
 # names(corrTable) <- c("IOP", "IOP_norm", "ANGPT2", "PTPRB", "TEK")
 summary(corrTable)     # Basic statistical analysis
 plot(corrTable$IOP, corrTable$ANGPT2)
+plot(corrTable$ANGPT2, corrTable$IOP)
 
 ########## DR_Chen requested table ##############
 # Dr_Chen <- cbind(samples[,c(1, 22, 20, 21, 19, 8, 23, 4)], 
@@ -107,33 +111,42 @@ corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order=
          col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), 
          addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 
-######## NonLinear Correlatoin ########
+#################### NonLinear Correlatoin (nlcor) ####################
+nlcor(corrTable$IOP, corrTable$ANGPT2, refine = 0.7, plt=T)
 
-cor(corrTable$ANGPT2, corrTable$IOP)
-nonlinear.cor <- nlcor(corrTable$ANGPT2, corrTable$IOP, plt=T)
-print(nonlinear.cor$cor.plot)
+nlcor(corrTable$IOP, corrTable$IOP)
+nlcor(corrTable$IOP, corrTable$ANGPT2)
+nlcor(corrTable$IOP, corrTable$PTPRB)
+nlcor(corrTable$IOP, corrTable$TEK)
 
-nlcor(corrTable$IOP, corrTable$ANGPT2, plt=T)
+nlcor(corrTable$ANGPT2, corrTable$IOP)
+nlcor(corrTable$ANGPT2, corrTable$ANGPT2)
+nlcor(corrTable$ANGPT2, corrTable$PTPRB)
+nlcor(corrTable$ANGPT2, corrTable$TEK)
 
-cor(corrTable$ANGPT2, corrTable$PTPRB)
-nlcor(corrTable$ANGPT2, corrTable$PTPRB, plt=T)
-nlcor(corrTable$PTPRB, corrTable$ANGPT2, plt=T)
+nlcor(corrTable$PTPRB, corrTable$IOP)
+nlcor(corrTable$PTPRB, corrTable$ANGPT2, plt=T)       # R=0.3664747    p=0.006690839
+nlcor(corrTable$PTPRB, corrTable$PTPRB)
+nlcor(corrTable$PTPRB, corrTable$TEK)
 
-cor(corrTable$ANGPT2, corrTable$TEK)
-nlcor(corrTable$ANGPT2, corrTable$TEK, plt=T)
-nlcor(corrTable$TEK, corrTable$ANGPT2, plt=T)
+nlcor(corrTable$TEK, corrTable$IOP, plt=T)            # R=0.4438115     p=0.01823332
+nlcor(corrTable$TEK, corrTable$ANGPT2)
+nlcor(corrTable$TEK, corrTable$PTPRB, plt=T)          # R=0.3986897     p=0.01190667
+nlcor(corrTable$TEK, corrTable$TEK)
 
-cor(corrTable$PTPRB, corrTable$IOP)
-nlcor(corrTable$PTPRB, corrTable$IOP, plt=T)
-nlcor(corrTable$IOP, corrTable$PTPRB, plt=T)
-
-cor(corrTable$IOP, corrTable$TEK)
-nlcor(corrTable$IOP, corrTable$TEK, plt=T)
-nlcor(corrTable$TEK, corrTable$IOP, plt=T)
-
-# c$cor.estimate
-# c$adjusted.p.value
-# print(c$cor.plot)
+##################### NonLinear Correlatoin (NNS) ##################################################
+## Nonlinear Nonparametric Statistics (NNS) using partial moments.                                ##
+## Partial moments are the elements of variance and asymptotically approximate the area of f(x).  ##
+## NNS offers Nonlinear Correlation & Dependence analysis.                                        ##
+####################################################################################################
+NNS.cor(corrTable$IOP, corrTable$ANGPT2)
+NNS.cor(corrTable$IOP, corrTable$PTPRB)
+NNS.cor(corrTable$IOP, corrTable$TEK)                  # R (IOP_TEK) = 0.8501074
+plot(corrTable$IOP, corrTable$TEK)
+NNS.cor(corrTable$ANGPT2, corrTable$PTPRB)
+NNS.cor(corrTable$ANGPT2, corrTable$TEK)               # R (ANGPT2_TEK) = 0.5067027
+plot(corrTable$ANGPT2, corrTable$TEK)
+NNS.cor(corrTable$PTPRB, corrTable$TEK)
 
 ######## Probability Density Function ########
 ThreeGenes <- read.csv("ThreeGenes.csv", sep=",", header=TRUE)
