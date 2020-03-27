@@ -17,22 +17,28 @@
 # remove.packages("nlcor")
 # install.packages("readxl")
 # install.packages('NNS')
+# install.packages("mgcv")
+# install.packages("gam")
+# install.packages("nlme")
 
 Packages <- c("tximport", "tximportData", "DESeq2", "tidyverse", "dplyr", "vctrs", "fs", "ggplot2", 
               "kader", "remotes", "nlcor", "corrplot", "RColorBrewer", "ggpubr", "pheatmap", "NNS", 
-              "ppcor", "BBmisc", "rcompanion", "caret", "moments", "devtools", "readxl")
+              "ppcor", "BBmisc", "rcompanion", "caret", "moments", "devtools", "readxl", "mgcv")
 lapply(Packages, library, character.only=TRUE)
 
 ####################################################
 ### Step 1: Import 45 samples' information files ###
 ####################################################
-tt <- read_excel("test.xlsx", 1)
-
 getwd()
 setwd("./Data"); getwd()
 # samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
+# for (i in (1:45)) {
+#     if (113 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 138) {sub_samples$Class_Age3[i] <- "Adolescent"}
+#     else if (138 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 158) {sub_samples$Class_Age3[i] <- "Adult"}
+#     else {sub_samples$Class_Age3[i] <- "Aged"} }
+# write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 # sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
 # dim(sub_genes_2)
 # sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
@@ -59,10 +65,7 @@ corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for th
 names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
 # names(corrTable) <- c("IOP", "IOP_norm", "ANGPT2", "PTPRB", "TEK")
 summary(corrTable)     # Basic statistical analysis
-plot(corrTable$IOP, corrTable$ANGPT2)
-plot(corrTable$ANGPT2, corrTable$IOP)
 
-########## DR_Chen requested table ##############
 # Dr_Chen <- cbind(samples[,c(1, 22, 20, 21, 19, 8, 23, 4)], 
 #                  subset(sub_genes_r, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek)),
 #                  subset(sub_genes_v, select=c(ENSRNOG00000016696_Angpt2, ENSRNOG00000055293_Ptprb, ENSRNOG00000008587_Tek)),
@@ -76,10 +79,10 @@ plot(corrTable$ANGPT2, corrTable$IOP)
 # ggqqplot(corrTable$PTPRB)
 # ggqqplot(corrTable$TEK)
 # ggqqplot(corrTable$IOP)
-shapiro.test(corrTable$ANGPT2)
-shapiro.test(corrTable$PTPRB)
-shapiro.test(corrTable$TEK)
-shapiro.test(corrTable$IOP)
+# shapiro.test(corrTable$ANGPT2)
+# shapiro.test(corrTable$PTPRB)
+# shapiro.test(corrTable$TEK)
+# shapiro.test(corrTable$IOP)
 
 ######## IOP Normalization Methods ########
 ##### Method 2: standard transformation #####
@@ -99,6 +102,29 @@ shapiro.test(corrTable$IOP)
 
 # skewness(corrTable$IOP)
 
+##### Method 7: Dr. Chen Adjusting #####
+# df0 <- read.csv(file="../Dr.Chen/Dr_Chen.csv", header=T)
+# meta<-read.csv(file="../Dr.Chen/p50_iop_all_data.csv", header=T)
+# df0 <- subset(df0, 0 < IOP)
+# df0$sample <- gsub("s_", "", df0$sample)
+# df1 <- merge(df0, meta, by.x="sample", by.y="RatID")
+# df1$iop <- apply(df1[,c("OD1", "OD2", "OD3", "OS1", "OS2", "OS3")] , 1, mean)
+# df1$iopage <- df1$iop / df1$AgeInDays
+# par(mfcol=c(1,2))
+# gg1 <- ggplot(df1, aes(IOP)) + geom_density(fill="green") + ggtitle("Density plot for IOP")
+# gg2 <- ggplot(df1, aes(iopage)) + geom_density(fill="green") + ggtitle("Density plot for age-ajusted IOP")
+# ggarrange(gg1, gg2, ncol=2)
+# shapiro.test(df1$iopage)
+# skewness(df1$iopage)
+# ## Correlation ##
+# corrTable <- cbind(sub_samples$Avg_IOP, selGenes, df1$iopage)    # Correlation tables for three genes 
+# names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK", "IOP_Age")
+# cor.test(df1$iopage, df1$ANGPT2_rlog, method="spearman")
+# plot(df1$iopage, df1$ANGPT2_rlog, main="correlation") 
+# mtext(side=3, "rho=0.29, p=0.057")
+# abline(lm(df1$ANGPT2_rlog ~ df1$iopage))
+# dev.off()
+
 ######## Pearson Correlatoin ########
 # pheatmap(cor(corrTable))
 # 
@@ -107,6 +133,7 @@ shapiro.test(corrTable$IOP)
 #          addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 
 ######## Spearman Correlatoin ########
+plot(corrTable$IOP, corrTable$ANGPT2)
 corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order="hclust", 
          col=colorRampPalette(c("dodgerblue", "aliceblue", "brown1"))(7), 
          addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
@@ -125,6 +152,7 @@ nlcor(corrTable$ANGPT2, corrTable$PTPRB)
 nlcor(corrTable$ANGPT2, corrTable$TEK)
 
 nlcor(corrTable$PTPRB, corrTable$IOP)
+plot(corrTable$PTPRB, corrTable$ANGPT2)
 nlcor(corrTable$PTPRB, corrTable$ANGPT2, plt=T)       # R=0.3664747    p=0.006690839
 nlcor(corrTable$PTPRB, corrTable$PTPRB)
 nlcor(corrTable$PTPRB, corrTable$TEK)
@@ -141,8 +169,8 @@ nlcor(corrTable$TEK, corrTable$TEK)
 ####################################################################################################
 NNS.cor(corrTable$IOP, corrTable$ANGPT2)
 NNS.cor(corrTable$IOP, corrTable$PTPRB)
-NNS.cor(corrTable$IOP, corrTable$TEK)                  # R (IOP_TEK) = 0.8501074
 plot(corrTable$IOP, corrTable$TEK)
+NNS.cor(corrTable$IOP, corrTable$TEK)                  # R (IOP_TEK) = 0.8501074
 NNS.cor(corrTable$ANGPT2, corrTable$PTPRB)
 NNS.cor(corrTable$ANGPT2, corrTable$TEK)               # R (ANGPT2_TEK) = 0.5067027
 plot(corrTable$ANGPT2, corrTable$TEK)
@@ -197,6 +225,26 @@ ggTEK <- ggplot(corrTable, aes(x=IOP, y=TEK, color=Class_IOP)) + scale_size_manu
   theme(legend.position="top", axis.title.y = element_blank())
 ggarrange(ggANG, ggPT, ggTEK + rremove("x.text"), labels=c("ANGPT2", "PTPRB", "TEK"), ncol=3, nrow=1)
 
+#### IOP_Age (Dr. Chen) #####
+ggscatter(corrTable, x="IOP_Age", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=TRUE, cor.coef=FALSE, xlab="IOP_Age", ylab="Expression") + 
+  stat_cor(aes(color=Class_IOP), label.x=-0.15)
+ggscatter(corrTable_IOP2, x="IOP_Age", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Class_IOP", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=TRUE, cor.coef=FALSE, xlab="IOP_Age", ylab="Expression") + 
+  stat_cor(aes(color=Class_IOP), label.x=0.05) 
+ggANG <- ggplot(corrTable, aes(x=IOP_Age, y=ANGPT2, color=Class_IOP)) + scale_size_manual(values=c(2,2,2)) +
+  geom_point(aes(size=Class_IOP)) + geom_smooth(method=lm, aes(fill=Class_IOP), se=FALSE, fullrange=TRUE) + 
+  theme(legend.position="top") + labs(y="Expression")
+ggPT <- ggplot(corrTable, aes(x=IOP_Age, y=PTPRB, color=Class_IOP)) + scale_size_manual(values=c(2,2,2)) +
+  geom_point(aes(size=Class_IOP)) + geom_smooth(method=lm, aes(fill=Class_IOP), se=FALSE, fullrange=TRUE) + 
+  theme(legend.position="top", axis.title.y = element_blank())
+ggTEK <- ggplot(corrTable, aes(x=IOP_Age, y=TEK, color=Class_IOP)) + scale_size_manual(values=c(2,2,2)) +
+  geom_point(aes(size=Class_IOP)) + geom_smooth(method=lm, aes(fill=Class_IOP), se=FALSE, fullrange=TRUE) + 
+  theme(legend.position="top", axis.title.y = element_blank())
+ggarrange(ggANG, ggPT, ggTEK + rremove("x.text"), labels=c("ANGPT2", "PTPRB", "TEK"), ncol=3, nrow=1)
+
 #################################################
 ### Step 4: t-test and ANOVA Analysis for IOP ###
 #################################################
@@ -221,9 +269,10 @@ summary(Anova_results)
 corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for three genes 
 names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
 
-corrTable <- cbind(sub_samples$Class_Age, sub_samples$Sex, sub_samples$Batch, corrTable)
-names(corrTable)[1:3] <- c("Age", "Sex", "Batch")
+corrTable <- cbind(sub_samples$Class_Age, sub_samples$Class_Age3, sub_samples$Sex, sub_samples$Batch, corrTable)
+names(corrTable)[1:3] <- c("Age", "Age3", "Sex", "Batch")
 levels(corrTable$Age)
+levels(corrTable$Age3)
 levels(corrTable$Sex)
 levels(corrTable$Batch)
 
@@ -240,10 +289,14 @@ ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="A
           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + 
   stat_cor(aes(color=Age), label.x=6.3)
-# ggscatter(corrTable, x="PTPRB", y="TEK", size=3, shape=19, color="Age",
-#           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE,
-#           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="PTPRB", ylab="TEK") + 
-#   stat_cor(aes(color=Age), label.x=7)
+ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age3", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
+  stat_cor(aes(color=Age3), label.x=12)
+ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Age3", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + 
+  stat_cor(aes(color=Age3), label.x=6.3)
 
 ############ ANOVA Analysis #############
 
