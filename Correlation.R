@@ -34,11 +34,27 @@ setwd("./Data"); getwd()
 # samples <- read.csv("samples53.csv", sep=",", header=TRUE)
 sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
-# for (i in (1:45)) {
-#     if (113 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 138) {sub_samples$Class_Age3[i] <- "Adolescent"}
-#     else if (138 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 158) {sub_samples$Class_Age3[i] <- "Adult"}
-#     else {sub_samples$Class_Age3[i] <- "Aged"} }
-# write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+
+####### Looking for a best partion of Age ########
+for (i in (1:45)) {
+    if (113 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 127) {sub_samples$Class_Age3[i] <- "Adolescent"}
+    else if (127 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 167) {sub_samples$Class_Age3[i] <- "Adult"}
+    else {sub_samples$Class_Age3[i] <- "Aged"} }
+
+corrTable <- cbind(sub_samples$Class_Age, sub_samples$Class_Age3, sub_samples$Sex, sub_samples$Batch, sub_samples$Avg_IOP, selGenes)
+names(corrTable) <- c("Age", "Age3", "Sex", "Batch", "IOP", "ANGPT2", "PTPRB", "TEK")
+ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age3", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
+  stat_cor(aes(color=Age3), label.x=5)
+sort(sub_samples$AgeInDays)
+ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Age3", 
+          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + 
+  stat_cor(aes(color=Age3), label.x=6.3)
+write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+####################################################################################################
+
 # sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
 # dim(sub_genes_2)
 # sub_genes_r <- read.csv("normalized_rlog.csv", sep=",", header=TRUE)
