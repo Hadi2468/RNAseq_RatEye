@@ -119,27 +119,27 @@ summary(corrTable)     # Basic statistical analysis
 # skewness(corrTable$IOP)
 
 ##### Method 7: Dr. Chen Adjusting #####
-# df0 <- read.csv(file="../Dr.Chen/Dr_Chen.csv", header=T)
-# meta<-read.csv(file="../Dr.Chen/p50_iop_all_data.csv", header=T)
-# df0 <- subset(df0, 0 < IOP)
-# df0$sample <- gsub("s_", "", df0$sample)
-# df1 <- merge(df0, meta, by.x="sample", by.y="RatID")
-# df1$iop <- apply(df1[,c("OD1", "OD2", "OD3", "OS1", "OS2", "OS3")] , 1, mean)
-# df1$iopage <- df1$iop / df1$AgeInDays
-# par(mfcol=c(1,2))
-# gg1 <- ggplot(df1, aes(IOP)) + geom_density(fill="green") + ggtitle("Density plot for IOP")
-# gg2 <- ggplot(df1, aes(iopage)) + geom_density(fill="green") + ggtitle("Density plot for age-ajusted IOP")
-# ggarrange(gg1, gg2, ncol=2)
-# shapiro.test(df1$iopage)
-# skewness(df1$iopage)
-# ## Correlation ##
-# corrTable <- cbind(sub_samples$Avg_IOP, selGenes, df1$iopage)    # Correlation tables for three genes 
-# names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK", "IOP_Age")
-# cor.test(df1$iopage, df1$ANGPT2_rlog, method="spearman")
-# plot(df1$iopage, df1$ANGPT2_rlog, main="correlation") 
-# mtext(side=3, "rho=0.29, p=0.057")
-# abline(lm(df1$ANGPT2_rlog ~ df1$iopage))
-# dev.off()
+df0 <- read.csv(file="../Dr.Chen/Dr_Chen.csv", header=T)
+meta<-read.csv(file="../Dr.Chen/p50_iop_all_data.csv", header=T)
+df0 <- subset(df0, 0 < IOP)
+df0$sample <- gsub("s_", "", df0$sample)
+df1 <- merge(df0, meta, by.x="sample", by.y="RatID")
+df1$iop <- apply(df1[,c("OD1", "OD2", "OD3", "OS1", "OS2", "OS3")] , 1, mean)
+df1$iopage <- df1$iop / df1$AgeInDays
+par(mfcol=c(1,2))
+gg1 <- ggplot(df1, aes(IOP)) + geom_density(fill="green") + ggtitle("Density plot for IOP")
+gg2 <- ggplot(df1, aes(iopage)) + geom_density(fill="green") + ggtitle("Density plot for age-ajusted IOP")
+ggarrange(gg1, gg2, ncol=2)
+shapiro.test(df1$iopage)
+skewness(df1$iopage)
+## Correlation ##
+corrTable <- cbind(sub_samples$Avg_IOP, selGenes, df1$iopage)    # Correlation tables for three genes
+names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK", "IOP_Age")
+cor.test(df1$iopage, df1$ANGPT2_rlog, method="spearman")
+plot(df1$iopage, df1$ANGPT2_rlog, main="correlation")
+mtext(side=3, "rho=0.29, p=0.057")
+abline(lm(df1$ANGPT2_rlog ~ df1$iopage))
+dev.off()
 
 ######## Pearson Correlatoin ########
 # pheatmap(cor(corrTable))
@@ -389,15 +389,19 @@ t.test(ANGPT2 ~ Age3, corrTable_Age2, mu=0, alt="two.sided", conf=0.95, var.eq=F
 ###            "Sex" based               ###
 ############################################
 
+for (i in (1:45)) {if (corrTable$Sex[i] == "FP") {corrTable$Sex[i] <- "F"}}
+corrTable$Sex <- factor(corrTable$Sex)    # Correlation tables for just two groups of IOP
+levels(corrTable$Sex)
+
 summary(corrTable$Sex)
 ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Sex", 
           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
-  stat_cor(aes(color=Sex), label.x=3)
+  stat_cor(aes(color=Sex), label.x=11)
 ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Sex", 
           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + 
-  stat_cor(aes(color=Sex), label.x=6)
+  stat_cor(aes(color=Sex), label.x=5.8)
 # ggscatter(corrTable_new, x="PTPRB", y="TEK", size=3, shape=19, color="Sex", cor.method="spearman",
 #           title="Correlation: Spearman,    Normalization: rlog", combine = TRUE, add="reg.line", conf.int=FALSE, 
 #           cor.coef=FALSE, xlab="PTPRB", ylab="TEK", palette=c("red", "pink", "blue"))
