@@ -36,23 +36,23 @@ sub_samples <- read.csv("samples45.csv", sep=",", header=TRUE)
 dim(sub_samples)
 
 ####### Looking for a best partion of Age ########
-for (i in (1:45)) {
-    if (113 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 127) {sub_samples$Class_Age3[i] <- "Adolescent"}
-    else if (127 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 167) {sub_samples$Class_Age3[i] <- "Adult"}
-    else {sub_samples$Class_Age3[i] <- "Aged"} }
-
-corrTable <- cbind(sub_samples$Class_Age, sub_samples$Class_Age3, sub_samples$Sex, sub_samples$Batch, sub_samples$Avg_IOP, selGenes)
-names(corrTable) <- c("Age", "Age3", "Sex", "Batch", "IOP", "ANGPT2", "PTPRB", "TEK")
-ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age3", 
-          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
-          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
-  stat_cor(aes(color=Age3), label.x=5)
-sort(sub_samples$AgeInDays)
-ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Age3", 
-          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
-          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + 
-  stat_cor(aes(color=Age3), label.x=6.3)
-write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
+# for (i in (1:45)) {
+#     if (113 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 127) {sub_samples$Class_Age3[i] <- "Adolescent"}
+#     else if (127 <= sub_samples$AgeInDays[i] & sub_samples$AgeInDays[i] < 167) {sub_samples$Class_Age3[i] <- "Adult"}
+#     else {sub_samples$Class_Age3[i] <- "Aged"} }
+# 
+# corrTable <- cbind(sub_samples$Class_Age, sub_samples$Class_Age3, sub_samples$Sex, sub_samples$Batch, sub_samples$Avg_IOP, selGenes)
+# names(corrTable) <- c("Age", "Age3", "Sex", "Batch", "IOP", "ANGPT2", "PTPRB", "TEK")
+# ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age3", 
+#           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+#           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
+#   stat_cor(aes(color=Age3), label.x=5)
+# sort(sub_samples$AgeInDays)
+# ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Age3", 
+#           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+#           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + 
+#   stat_cor(aes(color=Age3), label.x=6.3)
+# write.table(sub_samples, file="samples45.csv", sep=",", quote=F, row.names=TRUE, col.names=TRUE,)
 ####################################################################################################
 
 # sub_genes_2 <- read.csv("normalized_log2.csv", sep=",", header=TRUE)
@@ -155,51 +155,51 @@ corrplot(cor(corrTable, method="spearman"), method="color", type="upper", order=
          addCoef.col="black", tl.col="black", tl.cex=1, addrect=3)
 
 #################### NonLinear Correlatoin (nlcor) ####################
-nlcor(corrTable$IOP, corrTable$ANGPT2, refine = 0.7, plt=T)
-
-nlcor(corrTable$IOP, corrTable$IOP)
-nlcor(corrTable$IOP, corrTable$ANGPT2)
-nlcor(corrTable$IOP, corrTable$PTPRB)
-nlcor(corrTable$IOP, corrTable$TEK)
-
-nlcor(corrTable$ANGPT2, corrTable$IOP)
-nlcor(corrTable$ANGPT2, corrTable$ANGPT2)
-nlcor(corrTable$ANGPT2, corrTable$PTPRB)
-nlcor(corrTable$ANGPT2, corrTable$TEK)
-
-nlcor(corrTable$PTPRB, corrTable$IOP)
-plot(corrTable$PTPRB, corrTable$ANGPT2)
-nlcor(corrTable$PTPRB, corrTable$ANGPT2, plt=T)       # R=0.3664747    p=0.006690839
-nlcor(corrTable$PTPRB, corrTable$PTPRB)
-nlcor(corrTable$PTPRB, corrTable$TEK)
-
-nlcor(corrTable$TEK, corrTable$IOP, plt=T)            # R=0.4438115     p=0.01823332
-nlcor(corrTable$TEK, corrTable$ANGPT2)
-nlcor(corrTable$TEK, corrTable$PTPRB, plt=T)          # R=0.3986897     p=0.01190667
-nlcor(corrTable$TEK, corrTable$TEK)
+# nlcor(corrTable$IOP, corrTable$ANGPT2, refine = 0.7, plt=T)
+# 
+# nlcor(corrTable$IOP, corrTable$IOP)
+# nlcor(corrTable$IOP, corrTable$ANGPT2)
+# nlcor(corrTable$IOP, corrTable$PTPRB)
+# nlcor(corrTable$IOP, corrTable$TEK)
+# 
+# nlcor(corrTable$ANGPT2, corrTable$IOP)
+# nlcor(corrTable$ANGPT2, corrTable$ANGPT2)
+# nlcor(corrTable$ANGPT2, corrTable$PTPRB)
+# nlcor(corrTable$ANGPT2, corrTable$TEK)
+# 
+# nlcor(corrTable$PTPRB, corrTable$IOP)
+# plot(corrTable$PTPRB, corrTable$ANGPT2)
+# nlcor(corrTable$PTPRB, corrTable$ANGPT2, plt=T, line_thickness = 2.5, line_opacity = 0.8)       # R=0.3664747    p=0.006690839
+# nlcor(corrTable$PTPRB, corrTable$PTPRB)
+# nlcor(corrTable$PTPRB, corrTable$TEK)
+# 
+# nlcor(corrTable$TEK, corrTable$IOP, plt=T, line_thickness = 2.5, line_opacity = 0.8)            # R=0.4438115     p=0.01823332
+# nlcor(corrTable$TEK, corrTable$ANGPT2)
+# nlcor(corrTable$TEK, corrTable$PTPRB, plt=T, line_thickness = 2.5, line_opacity = 0.8)          # R=0.3986897     p=0.01190667
+# nlcor(corrTable$TEK, corrTable$TEK)
 
 ##################### NonLinear Correlatoin (NNS) ##################################################
 ## Nonlinear Nonparametric Statistics (NNS) using partial moments.                                ##
 ## Partial moments are the elements of variance and asymptotically approximate the area of f(x).  ##
 ## NNS offers Nonlinear Correlation & Dependence analysis.                                        ##
 ####################################################################################################
-NNS.cor(corrTable$IOP, corrTable$ANGPT2)
-NNS.cor(corrTable$IOP, corrTable$PTPRB)
-plot(corrTable$IOP, corrTable$TEK)
-NNS.cor(corrTable$IOP, corrTable$TEK)                  # R (IOP_TEK) = 0.8501074
-NNS.cor(corrTable$ANGPT2, corrTable$PTPRB)
-NNS.cor(corrTable$ANGPT2, corrTable$TEK)               # R (ANGPT2_TEK) = 0.5067027
-plot(corrTable$ANGPT2, corrTable$TEK)
-NNS.cor(corrTable$PTPRB, corrTable$TEK)
+# NNS.cor(corrTable$IOP, corrTable$ANGPT2)
+# NNS.cor(corrTable$IOP, corrTable$PTPRB)
+# plot(corrTable$IOP, corrTable$TEK)
+# NNS.cor(corrTable$IOP, corrTable$TEK)                  # R (IOP_TEK) = 0.8501074
+# NNS.cor(corrTable$ANGPT2, corrTable$PTPRB)
+# NNS.cor(corrTable$ANGPT2, corrTable$TEK)               # R (ANGPT2_TEK) = 0.5067027
+# plot(corrTable$ANGPT2, corrTable$TEK)
+# NNS.cor(corrTable$PTPRB, corrTable$TEK)
 
 ######## Probability Density Function ########
-ThreeGenes <- read.csv("ThreeGenes.csv", sep=",", header=TRUE)
-ThreeGenes$Expression[1:45] <- corrTable$ANGPT2
-ThreeGenes$Expression[46:90] <- corrTable$PTPRB
-ThreeGenes$Expression[91:135] <- corrTable$TEK
-ggplot(ThreeGenes, aes(Expression, fill=Gene)) + geom_density(alpha=0.6) +   scale_fill_manual(values=c("red", "blue", "yellow"))
-ggplot(corrTable, aes(IOP)) + geom_density(fill="green") + scale_x_continuous(limits=c(10, 25))
-ggplot(corrTable, aes(IOP)) + geom_density(fill="green") 
+# ThreeGenes <- read.csv("ThreeGenes.csv", sep=",", header=TRUE)
+# ThreeGenes$Expression[1:45] <- corrTable$ANGPT2
+# ThreeGenes$Expression[46:90] <- corrTable$PTPRB
+# ThreeGenes$Expression[91:135] <- corrTable$TEK
+# ggplot(ThreeGenes, aes(Expression, fill=Gene)) + geom_density(alpha=0.6) +   scale_fill_manual(values=c("red", "blue", "yellow"))
+# ggplot(corrTable, aes(IOP)) + geom_density(fill="green") + scale_x_continuous(limits=c(10, 25))
+# ggplot(corrTable, aes(IOP)) + geom_density(fill="green") 
 
 #######################################################
 ### Step 3: IOP Correlation Analysis: Scatter Plots ###
@@ -282,29 +282,28 @@ summary(Anova_results)
 ### Step 5: Partial Correlation Analysis for IOP subgroups ###
 ##############################################################
 
-corrTable <- cbind(sub_samples$Avg_IOP, selGenes)    # Correlation tables for three genes 
-names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK")
-
-corrTable <- cbind(sub_samples$Class_Age, sub_samples$Class_Age3, sub_samples$Sex, sub_samples$Batch, corrTable)
-names(corrTable)[1:3] <- c("Age", "Age3", "Sex", "Batch")
-levels(corrTable$Age)
-levels(corrTable$Age3)
-levels(corrTable$Sex)
-levels(corrTable$Batch)
+corrTable <- cbind(sub_samples$Avg_IOP, selGenes, sub_samples$AgeInDays, sub_samples$Class_Age3, sub_samples$Sex, sub_samples$Batch)
+names(corrTable) <- c("IOP", "ANGPT2", "PTPRB", "TEK", "Age", "Age3", "Sex", "Batch")
+# levels(corrTable$Age3)
+# levels(corrTable$Sex)
+# levels(corrTable$Batch)
 
 ############################################
 ### Step 6: Partial Correlation Analysis ###
 ###            "Age" based               ###
 ############################################
 
-ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age", 
-          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
-          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
-  stat_cor(aes(color=Age), label.x=12)
-ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Age", 
-          cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
-          add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + 
-  stat_cor(aes(color=Age), label.x=6.3)
+############# Age ##############
+# ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age", 
+#           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+#           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
+#   stat_cor(aes(color=Age), label.x=12)
+# ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="Age", 
+#           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
+#           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="ANGPT2", ylab="Expression") + 
+#   stat_cor(aes(color=Age), label.x=6.3)
+
+############# Age3 ##############
 ggscatter(corrTable, x="IOP", y=c("ANGPT2", "PTPRB", "TEK"), size=3, shape=19, color="Age3", 
           cor.method="spearman", title="Correlation: Spearman,    Normalization: rlog", combine=TRUE, 
           add="reg.line", conf.int=FALSE, cor.coef=FALSE, xlab="IOP", ylab="Expression") + 
@@ -317,64 +316,73 @@ ggscatter(corrTable, x="ANGPT2", y=c("PTPRB", "TEK"), size=3, shape=19, color="A
 ############ ANOVA Analysis #############
 
 # H0: Mean of ANGPT2 expression for samples with all Age gropus are equal 
-ggplot(corrTable, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
-Anova_results <- aov(ANGPT2 ~ Age, data=corrTable)
-summary(Anova_results)
+ggplot(corrTable, aes(x=Age3, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
 
-Anova_results <- aov(ANGPT2 ~ IOP + Age, data=corrTable)
-summary(Anova_results)
+Anova_results <- aov(ANGPT2 ~ Age3, data=corrTable); summary(Anova_results)
+Anova_results <- aov(ANGPT2 ~ IOP + Age3, data=corrTable); summary(Anova_results)
 
-######## Division 1  ########
+Linear_model <- lm(ANGPT2 ~ IOP + Age3, corrTable); summary(Linear_model)
+
+
+# ######## Division 1  ########
+# corrTable_Age2 <- corrTable
+# levels(corrTable_Age2$Age) <- c("Adolescent", "Adolescent_&_Adult", "Middle_Aged", "Middle_Aged_&_Aged")
+# for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Adolescent") {corrTable_Age2$Age[i] <- "Adolescent_&_Adult"}}
+# for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Middle_Aged_&_Aged"}} 
+# corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
+# levels(corrTable_Age2$Age)
+# 
+# ggplot(corrTable_Age2, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
+# Anova_results <- aov(ANGPT2 ~ Age, corrTable_Age2); summary(Anova_results)
+# Anova_results <- aov(ANGPT2 ~ IOP + Age, corrTable_Age2); summary(Anova_results)
+# t.test(ANGPT2 ~ Age, corrTable_Age2, mu=0, alt="two.sided", conf=0.95, var.eq=F, paired=F)
+# 
+# ######## Division 2 ########
+# corrTable_Age2 <- corrTable
+# levels(corrTable_Age2$Age) <- c("Others", "Adult", "Middle_Aged", "Aged")
+# for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Others"}} 
+# for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Aged") {corrTable_Age2$Age[i] <- "Others"}}
+# corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
+# levels(corrTable_Age2$Age)
+# 
+# ggplot(corrTable_Age2, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
+# Anova_results <- aov(ANGPT2 ~ Age, corrTable_Age2); summary(Anova_results)
+# Anova_results <- aov(ANGPT2 ~ IOP + Age, corrTable_Age2); summary(Anova_results)
+# t.test(ANGPT2 ~ Age, corrTable_Age2, mu=0, alt="two.sided", conf=0.95, var.eq=F, paired=F)
+# 
+# ######## Division 3 ########
+# corrTable_Age2 <- corrTable
+# levels(corrTable_Age2$Age) <- c("Adolescent", "Others", "Middle_Aged", "Aged")
+# for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Adolescent") {corrTable_Age2$Age[i] <- "Others"}}
+# for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Others"}} 
+# corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
+# levels(corrTable_Age2$Age)
+# 
+# ggplot(corrTable_Age2, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
+# Anova_results <- aov(ANGPT2 ~ Age, corrTable_Age2); summary(Anova_results)
+# Anova_results <- aov(ANGPT2 ~ IOP + Age, corrTable_Age2); summary(Anova_results)
+# t.test(ANGPT2 ~ Age, corrTable_Age2, mu=0, alt="two.sided", conf=0.95, var.eq=F, paired=F)
+# 
+# ######## Division 4 ########
+# corrTable_Age2 <- corrTable
+# levels(corrTable_Age2$Age) <- c("Adolescent", "Others", "Middle_Aged", "Aged")
+# for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Others"}} 
+# for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Aged") {corrTable_Age2$Age[i] <- "Others"}}
+# corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
+# levels(corrTable_Age2$Age)
+
+######## Division for Age3 ########
 corrTable_Age2 <- corrTable
-levels(corrTable_Age2$Age) <- c("Adolescent", "Adolescent_&_Adult", "Middle_Aged", "Middle_Aged_&_Aged")
-for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Adolescent") {corrTable_Age2$Age[i] <- "Adolescent_&_Adult"}}
-for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Middle_Aged_&_Aged"}} 
-corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
-levels(corrTable_Age2$Age)
+levels(corrTable_Age2$Age3) <- c("Others", "Adult", "Aged")
+for (i in (1:45)) {if (corrTable_Age2$Age3[i] == "Aged") {corrTable_Age2$Age3[i] <- "Others"}}
+corrTable_Age2$Age3 <- factor(corrTable_Age2$Age3)
+levels(corrTable_Age2$Age3)
 
-ggplot(corrTable_Age2, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
-Anova_results <- aov(ANGPT2 ~ Age, corrTable_Age2); summary(Anova_results)
-Anova_results <- aov(ANGPT2 ~ IOP + Age, corrTable_Age2); summary(Anova_results)
-t.test(ANGPT2 ~ Age, corrTable_Age2, mu=0, alt="two.sided", conf=0.95, var.eq=F, paired=F)
+ggplot(corrTable_Age2, aes(x=Age3, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
 
-######## Division 2 ########
-corrTable_Age2 <- corrTable
-levels(corrTable_Age2$Age) <- c("Others", "Adult", "Middle_Aged", "Aged")
-for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Others"}} 
-for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Aged") {corrTable_Age2$Age[i] <- "Others"}}
-corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
-levels(corrTable_Age2$Age)
-
-ggplot(corrTable_Age2, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
-Anova_results <- aov(ANGPT2 ~ Age, corrTable_Age2); summary(Anova_results)
-Anova_results <- aov(ANGPT2 ~ IOP + Age, corrTable_Age2); summary(Anova_results)
-t.test(ANGPT2 ~ Age, corrTable_Age2, mu=0, alt="two.sided", conf=0.95, var.eq=F, paired=F)
-
-######## Division 3 ########
-corrTable_Age2 <- corrTable
-levels(corrTable_Age2$Age) <- c("Adolescent", "Others", "Middle_Aged", "Aged")
-for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Adolescent") {corrTable_Age2$Age[i] <- "Others"}}
-for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Others"}} 
-corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
-levels(corrTable_Age2$Age)
-
-ggplot(corrTable_Age2, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
-Anova_results <- aov(ANGPT2 ~ Age, corrTable_Age2); summary(Anova_results)
-Anova_results <- aov(ANGPT2 ~ IOP + Age, corrTable_Age2); summary(Anova_results)
-t.test(ANGPT2 ~ Age, corrTable_Age2, mu=0, alt="two.sided", conf=0.95, var.eq=F, paired=F)
-
-######## Division 4 ########
-corrTable_Age2 <- corrTable
-levels(corrTable_Age2$Age) <- c("Adolescent", "Others", "Middle_Aged", "Aged")
-for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Middle_Aged") {corrTable_Age2$Age[i] <- "Others"}} 
-for (i in (1:45)) {if (corrTable_Age2$Age[i] == "Aged") {corrTable_Age2$Age[i] <- "Others"}}
-corrTable_Age2$Age <- factor(corrTable_Age2$Age)    # Correlation tables for just two groups of Age
-levels(corrTable_Age2$Age)
-
-ggplot(corrTable_Age2, aes(x=Age, y=ANGPT2)) + geom_boxplot(color="blue", fill="pink", size=1)
-Anova_results <- aov(ANGPT2 ~ Age, corrTable_Age2); summary(Anova_results)
-Anova_results <- aov(ANGPT2 ~ IOP + Age, corrTable_Age2); summary(Anova_results)
-t.test(ANGPT2 ~ Age, corrTable_Age2, mu=0, alt="two.sided", conf=0.95, var.eq=F, paired=F)
+Anova_results <- aov(ANGPT2 ~ Age3, corrTable_Age2); summary(Anova_results)
+Anova_results <- aov(ANGPT2 ~ IOP + Age3, corrTable_Age2); summary(Anova_results)
+t.test(ANGPT2 ~ Age3, corrTable_Age2, mu=0, alt="two.sided", conf=0.95, var.eq=F, paired=F)
 
 ############################################
 ### Step 7: Partial Correlation Analysis ###
